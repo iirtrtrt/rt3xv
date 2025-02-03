@@ -43,7 +43,12 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     function makeInstance(scene, texture, geometry, color, x) {
-      const material = new THREE.MeshBasicMaterial({ color, map: texture });
+      // const material = new THREE.MeshBasicMaterial({ color, map: texture });
+      const material = new THREE.MeshBasicMaterial({
+        color,
+        map: texture,
+        side: THREE.DoubleSide,
+      });
 
       const cube = new THREE.Mesh(geometry, material);
       scene.add(cube);
@@ -204,7 +209,7 @@
         new THREE.BufferAttribute(uvs, uvNumComponents)
       );
 
-      const indexes1 = [
+      const baseIndexes = [
         0, 4, 2, 2, 4, 10, 4, 5, 6, 6, 5, 7, 8, 9, 10, 10, 9, 11, 5, 1, 11, 11,
         1, 3,
       ];
@@ -212,7 +217,7 @@
       let indexes = [];
 
       for (let i = 0; i < 6; i++) {
-        indexes = indexes.concat(indexes1.map((idx) => idx + i * 12));
+        indexes = indexes.concat(baseIndexes.map((idx) => idx + i * 12));
       }
 
       geometry.setIndex(indexes);
