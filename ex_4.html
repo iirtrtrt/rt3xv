@@ -82,18 +82,22 @@
 
     function addHand(scene) {
       const geometry1 = new THREE.CylinderGeometry(2, 2, 16, 16);
+      geometry1.translate(-4, -4, 0);
+      const geometry2 = new THREE.CylinderGeometry(2, 2, 16, 16);
+      geometry2.translate(4, -4, 0);
+
       const material1 = new THREE.MeshBasicMaterial({ color: 0xffff00 });
 
       const cylinder1 = new THREE.Mesh(geometry1, material1);
-      const cylinder2 = new THREE.Mesh(geometry1, material1);
+      const cylinder2 = new THREE.Mesh(geometry2, material1);
 
-      cylinder1.position.set(-6, -10, 0);
-      cylinder2.position.set(6, -10, 0);
+      cylinder1.position.set(-2, -4, 0);
+      cylinder2.position.set(2, -4, 0);
 
-      const geometry2 = new THREE.CylinderGeometry(4, 4, 18, 10, 24);
+      const geometry3 = new THREE.CylinderGeometry(4, 4, 18, 10, 24);
       const material2 = new THREE.MeshBasicMaterial({ color: 'red' });
 
-      const hand = new THREE.Mesh(geometry2, material2);
+      const hand = new THREE.Mesh(geometry3, material2);
       hand.rotation.z = Math.PI / 2;
       hand.position.set(0, 0, 0);
 
@@ -168,7 +172,7 @@
 
       function render() {
         time += 0.01;
-        const angle = Math.sin(time) * (Math.PI / 6);
+        const angle = Math.sin(time) * (Math.PI / 8);
 
         cylinder1.rotation.z = angle;
         cylinder2.rotation.z = -angle;
