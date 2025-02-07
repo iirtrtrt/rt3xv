@@ -22,10 +22,19 @@
       void main()
       {
           myColor = vec3 ( (0.5+position.x)*1.0, (0.5+position.y)*1.0, 1.0 );
-          gl_Position = projectionMatrix * modelViewMatrix * vec4 (position.x, position.y, position.z+cos(position.x*30.0)*cos(time)/10.0, 1.0);
+
+          gl_Position = projectionMatrix * modelViewMatrix * vec4 (
+            position.x,
+            position.y,
+            position.z+cos(position.x*30.0)*cos(position.y*30.0)*cos(time)/10.0,
+            1.0);
       }
     </script>
-
+    <!-- gl_Position = projectionMatrix * modelViewMatrix * vec4 (
+          position.x+cos(position.y*30.0)*cos(time)/10.0,
+          position.y,
+          position.z+cos(position.x*30.0)*cos(time)/10.0,
+          1.0); -->
     <script id="fragmentShader" type="x-shader/x-fragment">
       uniform float time;
       varying vec3 myColor;
@@ -50,8 +59,8 @@
     </script>
 
     <script type="module">
-      import * as THREE from "three";
-      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
       var container;
       var camera, scene, renderer, controls;
@@ -61,22 +70,25 @@
       var windowHalfY = window.innerHeight / 2;
 
       var startTime = Date.now();
+      var textureForShader;
+      var textureLoader = new THREE.TextureLoader();
 
       init();
       animate();
 
       function init() {
-        container = document.getElementById("container");
+        container = document.getElementById('container');
         scene = new THREE.Scene();
 
         uniforms = {
-          time: { type: "f", value: 1.0 },
+          time: { type: 'f', value: 1.0 },
+          time: { type: 't', value: textureForShader },
         };
 
         material = new THREE.ShaderMaterial({
           uniforms: uniforms,
-          vertexShader: document.getElementById("vertexShader").textContent,
-          fragmentShader: document.getElementById("fragmentShader").textContent,
+          vertexShader: document.getElementById('vertexShader').textContent,
+          fragmentShader: document.getElementById('fragmentShader').textContent,
         });
 
         var geometry = new THREE.PlaneGeometry(1, 1, 100, 100);
