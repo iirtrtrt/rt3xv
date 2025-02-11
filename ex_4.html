@@ -94,11 +94,7 @@
     }
 
     function addArm(scene, fingerTexture, armTexture, x, y, z, isLeft) {
-      let multiply = 1;
-
-      if (!isLeft) {
-        multiply = -1;
-      }
+      let multiply = isLeft ? 1 : -1;
 
       const geometry1 = new THREE.CylinderGeometry(8, 8, 28, 16);
       const geometry2 = new THREE.CylinderGeometry(8, 8, 28, 16);
@@ -175,16 +171,14 @@
       isLeft,
       time
     ) {
-      let multiply = 1;
+      let multiply = isLeft ? 1 : -1;
 
-      if (!isLeft) {
-        multiply = -1;
-
-        arm1.rotation.z -= Math.sin(time) * (Math.PI / 400);
-        arm1.rotation.y -= Math.cos(time) * (Math.PI / 1400) * multiply;
-      } else {
+      if (isLeft) {
         arm1.rotation.z -= Math.sin(time) * (Math.PI / 1200) * multiply;
         arm1.rotation.y -= Math.sin(time) * (Math.PI / 1400) * multiply;
+      } else {
+        arm1.rotation.z -= Math.sin(time) * (Math.PI / 400);
+        arm1.rotation.y -= Math.cos(time) * (Math.PI / 1400) * multiply;
       }
 
       const arm2Position = new THREE.Vector3(0, 28, 0);
