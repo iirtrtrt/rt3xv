@@ -45,7 +45,7 @@
     function addBackground(length, scene) {
       const geometry = new THREE.PlaneGeometry(length, length);
 
-      const material = new THREE.MeshBasicMaterial({
+      const material = new THREE.MeshStandardMaterial({
         color: 0xe3e9e5,
         side: THREE.DoubleSide,
         transparent: true,
@@ -61,9 +61,7 @@
     function addBody(scene, texture1, texture2, x, y, z) {
       const geometry1 = new THREE.BoxGeometry(8, 120, 12);
 
-      const material1 = new THREE.MeshBasicMaterial({
-        map: texture1,
-      });
+      const material1 = new THREE.MeshStandardMaterial({ map: texture1 });
 
       const bodyFrame = new THREE.Mesh(geometry1, material1);
 
@@ -73,7 +71,7 @@
 
       const geometry2 = new THREE.ConeGeometry(28, 48, 16);
 
-      const material2 = new THREE.MeshBasicMaterial({ map: texture2 });
+      const material2 = new THREE.MeshStandardMaterial({ map: texture2 });
 
       const body = new THREE.Mesh(geometry2, material2);
 
@@ -86,7 +84,7 @@
     function addDesk(scene, x, y, z) {
       const geometry = new THREE.BoxGeometry(160, 8, 80);
 
-      const material = new THREE.MeshBasicMaterial({ color: 'white' });
+      const material = new THREE.MeshStandardMaterial({ color: 'white' });
 
       const desk = new THREE.Mesh(geometry, material);
 
@@ -114,13 +112,13 @@
       geometry6.translate(x, y + 8, z);
       geometry7.translate(x, y + 8, z);
 
-      const material1 = new THREE.MeshBasicMaterial({ map: armTexture });
+      const material1 = new THREE.MeshStandardMaterial({ map: armTexture });
 
-      const material4 = new THREE.MeshBasicMaterial({ color: 0x696962 });
+      const material4 = new THREE.MeshStandardMaterial({ color: 0x696962 });
 
-      const material5 = new THREE.MeshBasicMaterial({ color: 0x646962 });
+      const material5 = new THREE.MeshStandardMaterial({ color: 0x646962 });
 
-      const material6 = new THREE.MeshBasicMaterial({ map: fingerTexture });
+      const material6 = new THREE.MeshStandardMaterial({ map: fingerTexture });
 
       const arm1 = new THREE.Mesh(geometry1, material1);
       const arm2 = new THREE.Mesh(geometry2, material1);
@@ -169,6 +167,7 @@
     function main() {
       const canvas = document.querySelector('#c');
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      // renderer.shadowMap.enabled = true;
 
       const loader = new THREE.TextureLoader();
       const columnTexture = loader.load('column_texture.png');
@@ -191,9 +190,9 @@
 
       {
         const color = 0xffffff;
-        const intensity = 1;
+        const intensity = 4;
         const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(-1, 2, 4);
+        light.position.set(40, 120, 120);
         scene.add(light);
       }
 
