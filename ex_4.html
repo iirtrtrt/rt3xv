@@ -59,7 +59,7 @@
     }
 
     function addBody(scene, texture1, texture2, x, y, z) {
-      const geometry1 = new THREE.BoxGeometry(8, 88, 12);
+      const geometry1 = new THREE.BoxGeometry(8, 120, 12);
 
       const material1 = new THREE.MeshBasicMaterial({
         map: texture1,
@@ -71,7 +71,7 @@
 
       scene.add(bodyFrame);
 
-      const geometry2 = new THREE.ConeGeometry(28, 48, 8);
+      const geometry2 = new THREE.ConeGeometry(28, 48, 16);
 
       const material2 = new THREE.MeshBasicMaterial({ map: texture2 });
 
@@ -81,6 +81,18 @@
       body.rotation.y = Math.PI / 2;
 
       scene.add(body);
+    }
+
+    function addDesk(scene, x, y, z) {
+      const geometry = new THREE.BoxGeometry(160, 8, 80);
+
+      const material = new THREE.MeshBasicMaterial({ color: 'white' });
+
+      const desk = new THREE.Mesh(geometry, material);
+
+      desk.position.set(x, y - 52, z + 32);
+
+      scene.add(desk);
     }
 
     function addArm(scene, fingerTexture, armTexture, x, y, z) {
@@ -211,6 +223,8 @@
       } = addArm(scene, fingerTexture, armTexture, 0, 0, 0);
 
       addBody(scene, columnTexture, bodyTexture, 0, 0, 0);
+
+      addDesk(scene, 0, 0, 0);
 
       function render() {
         time += 0.02;
