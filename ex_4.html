@@ -91,6 +91,16 @@
       desk.position.set(x, y - 52, z + 32);
 
       scene.add(desk);
+
+      const geometry2 = new THREE.BoxGeometry(44, 4, 24);
+
+      const material2 = new THREE.MeshStandardMaterial({ color: 'red' });
+
+      const object = new THREE.Mesh(geometry2, material2);
+
+      object.position.set(x, y - 48, z + 40);
+
+      scene.add(object);
     }
 
     function addArm(scene, fingerTexture, armTexture, x, y, z, isLeft) {
