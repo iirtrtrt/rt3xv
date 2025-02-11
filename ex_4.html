@@ -217,28 +217,22 @@
       function render() {
         time += 0.02;
 
-        const zAngle1 = Math.sin(time) * (Math.PI / 1200);
-        const yAngle1 = Math.sin(time) * (Math.PI / 1400);
-        lArm1.rotation.z = lArm1.rotation.z - zAngle1;
-        lArm1.rotation.y = lArm1.rotation.y - yAngle1;
+        lArm1.rotation.z -= Math.sin(time) * (Math.PI / 1200);
+        lArm1.rotation.y -= Math.sin(time) * (Math.PI / 1400);
 
         const lArm2Position = new THREE.Vector3(0, 28, 0);
         lArm1.localToWorld(lArm2Position);
         lArm2.position.copy(lArm2Position);
 
-        const zAngle2 = Math.sin(time) * (Math.PI / 1200);
-        const xAngle2 = Math.cos(time) * (Math.PI / 800);
-        lArm2.rotation.z -= zAngle2;
-        lArm2.rotation.x -= xAngle2;
+        lArm2.rotation.z -= Math.sin(time) * (Math.PI / 1200);
+        lArm2.rotation.x -= Math.cos(time) * (Math.PI / 800);
 
         const lArm3Position = new THREE.Vector3(0, 28, 0);
         lArm2.localToWorld(lArm3Position);
         lArm3.position.copy(lArm3Position);
 
-        const zAngle3 = Math.cos(time) * (Math.PI / 600);
-        const xAngle3 = Math.sin(time) * (Math.PI / 800);
-        lArm3.rotation.z -= zAngle3;
-        lArm3.rotation.x -= xAngle3;
+        lArm3.rotation.z -= Math.cos(time) * (Math.PI / 600);
+        lArm3.rotation.x -= Math.sin(time) * (Math.PI / 800);
 
         const lWristPosition = new THREE.Vector3(0, 30, 0);
         lArm3.localToWorld(lWristPosition);
@@ -247,24 +241,22 @@
         const lHandPosition = new THREE.Vector3(0, 36, 0);
         lArm3.localToWorld(lHandPosition);
         lHand.position.copy(lHandPosition);
-        lHand.rotation.z += zAngle3;
-        lHand.rotation.x += zAngle3;
-
-        const lFingerAngle = Math.cos(time) * (Math.PI / 8);
+        lHand.rotation.z += Math.sin(time) * (Math.PI / 800);
+        lHand.rotation.x += Math.sin(time) * (Math.PI / 400);
 
         const lFinger1Position = new THREE.Vector3(0, -6, 0);
         lHand.localToWorld(lFinger1Position);
         lFinger1.position.copy(lFinger1Position);
         lFinger1.rotation.copy(lHand.rotation);
         lFinger1.rotation.z -= Math.PI / 2;
-        lFinger1.rotation.z += lFingerAngle;
+        lFinger1.rotation.z += Math.cos(time) * (Math.PI / 12);
 
         const lFinger2Position = new THREE.Vector3(0, 6, 0);
         lHand.localToWorld(lFinger2Position);
         lFinger2.position.copy(lFinger2Position);
         lFinger2.rotation.copy(lHand.rotation);
         lFinger2.rotation.z -= Math.PI / 2;
-        lFinger2.rotation.z -= lFingerAngle;
+        lFinger2.rotation.z -= Math.cos(time) * (Math.PI / 12);
 
         if (resizeRendererToDisplaySize(renderer)) {
           const canvas = renderer.domElement;
