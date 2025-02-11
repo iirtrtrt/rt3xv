@@ -42,38 +42,28 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    function makeInstance(scene, texture, geometry, color, x) {
-      // const material = new THREE.MeshBasicMaterial({ color, map: texture });
-      const material = new THREE.MeshBasicMaterial({
-        color,
-        map: texture,
-        side: THREE.DoubleSide,
-      });
-
-      const cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
-
-      cube.position.x = x;
-      return cube;
-    }
-
     function addBackground(length, scene) {
       const geometry = new THREE.PlaneGeometry(length, length);
+
       const material = new THREE.MeshBasicMaterial({
-        color: 'white',
+        color: 0xe3e9e5,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.4,
+        opacity: 0.8,
       });
       const plane = new THREE.Mesh(geometry, material);
+
+      plane.position.set(0, 0, -32);
 
       scene.add(plane);
     }
 
-    function addBody(scene, x, y, z) {
+    function addBody(scene, texture1, texture2, x, y, z) {
       const geometry1 = new THREE.BoxGeometry(8, 88, 12);
 
-      const material1 = new THREE.MeshBasicMaterial({ color: 'white' });
+      const material1 = new THREE.MeshBasicMaterial({
+        map: texture1,
+      });
 
       const bodyFrame = new THREE.Mesh(geometry1, material1);
 
@@ -83,16 +73,17 @@
 
       const geometry2 = new THREE.ConeGeometry(28, 48, 8);
 
-      const material2 = new THREE.MeshBasicMaterial({ color: 'green' });
+      const material2 = new THREE.MeshBasicMaterial({ map: texture2 });
 
       const body = new THREE.Mesh(geometry2, material2);
 
       body.rotation.z = Math.PI;
+      body.rotation.y = Math.PI / 2;
 
       scene.add(body);
     }
 
-    function addArm(scene, x, y, z) {
+    function addArm(scene, fingerTexture, armTexture, x, y, z) {
       const geometry1 = new THREE.CylinderGeometry(8, 8, 28, 16);
       const geometry2 = new THREE.CylinderGeometry(8, 8, 28, 16);
       const geometry3 = new THREE.CylinderGeometry(8, 8, 28, 16);
@@ -111,13 +102,13 @@
       geometry6.translate(x, y + 8, z);
       geometry7.translate(x, y + 8, z);
 
-      const material1 = new THREE.MeshBasicMaterial({ color: 'blue' });
+      const material1 = new THREE.MeshBasicMaterial({ map: armTexture });
 
-      const material4 = new THREE.MeshBasicMaterial({ color: 'orange' });
+      const material4 = new THREE.MeshBasicMaterial({ color: 0x696962 });
 
-      const material5 = new THREE.MeshBasicMaterial({ color: 'red' });
+      const material5 = new THREE.MeshBasicMaterial({ color: 0x646962 });
 
-      const material6 = new THREE.MeshBasicMaterial({ color: 'yellow' });
+      const material6 = new THREE.MeshBasicMaterial({ map: fingerTexture });
 
       const arm1 = new THREE.Mesh(geometry1, material1);
       const arm2 = new THREE.Mesh(geometry2, material1);
@@ -167,6 +158,12 @@
       const canvas = document.querySelector('#c');
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 
+      const loader = new THREE.TextureLoader();
+      const columnTexture = loader.load('column_texture.png');
+      const bodyTexture = loader.load('body_texture.png');
+      const fingerTexture = loader.load('finger_texture.png');
+      const armTexture = loader.load('arm_texture.png');
+
       const fov = 40;
       const aspect = 2;
       const near = 0.1;
@@ -188,7 +185,7 @@
         scene.add(light);
       }
 
-      addBackground(100, scene);
+      addBackground(200, scene);
 
       function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
@@ -211,8 +208,9 @@
         hand: lHand,
         finger1: lFinger1,
         finger2: lFinger2,
-      } = addArm(scene, 0, 0, 0);
-      addBody(scene, 0, 0, 0);
+      } = addArm(scene, fingerTexture, armTexture, 0, 0, 0);
+
+      addBody(scene, columnTexture, bodyTexture, 0, 0, 0);
 
       function render() {
         time += 0.02;
