@@ -245,8 +245,8 @@
     function main() {
       const canvas = document.querySelector('#c');
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-      renderer.xr.enabled = true;
-      document.body.appendChild(VRButton.createButton(renderer));
+      // renderer.xr.enabled = true;
+      // document.body.appendChild(VRButton.createButton(renderer));
 
       const loader = new THREE.TextureLoader();
       const columnTexture = loader.load('column_texture.png');
@@ -260,6 +260,20 @@
       const far = 1000;
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
       camera.position.z = 360;
+
+      const params = new URL(document.location).searchParams;
+      const allowvr = params.get('allowvr') === 'true';
+      if (allowvr) {
+        renderer.xr.enabled = true;
+        document.body.appendChild(VRButton.createButton(renderer));
+        document.querySelector('#vr').style.display = 'none';
+      } else {
+        // no VR, add some controls
+        const controls = new OrbitControls(camera, canvas);
+        controls.target.set(0, 1.6, -2);
+        controls.update();
+        document.querySelector('#nonvr').style.display = 'none';
+      }
 
       var controls = new OrbitControls(camera, renderer.domElement);
       controls.listenToKeyEvents(window); // optional
