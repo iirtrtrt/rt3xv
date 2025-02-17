@@ -1,0 +1,348 @@
+<!-- Licensed under a BSD license. See license.html for license -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>Three.js - Custom BufferGeometry</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      #c {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+  </body>
+
+  <script
+    async
+    src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+  ></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.172.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.172.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    function addBackground(length, scene) {
+      const geometry = new THREE.PlaneGeometry(length, length);
+
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xe3e9e5,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.8,
+      });
+      const plane = new THREE.Mesh(geometry, material);
+
+      plane.position.set(0, 0, -32);
+
+      scene.add(plane);
+    }
+
+    function addBody(scene, texture1, texture2, x, y, z) {
+      const geometry1 = new THREE.BoxGeometry(8, 120, 12);
+
+      const material1 = new THREE.MeshStandardMaterial({ map: texture1 });
+
+      const bodyFrame = new THREE.Mesh(geometry1, material1);
+
+      bodyFrame.position.set(x, y, z + 8);
+
+      scene.add(bodyFrame);
+
+      const geometry2 = new THREE.ConeGeometry(28, 48, 16);
+
+      const material2 = new THREE.MeshStandardMaterial({ map: texture2 });
+
+      const body = new THREE.Mesh(geometry2, material2);
+
+      body.rotation.z = Math.PI;
+      body.rotation.y = Math.PI / 2;
+
+      scene.add(body);
+    }
+
+    function addDesk(scene, x, y, z) {
+      const geometry = new THREE.BoxGeometry(160, 8, 80);
+
+      const material = new THREE.MeshStandardMaterial({ color: 'white' });
+
+      const desk = new THREE.Mesh(geometry, material);
+
+      desk.position.set(x, y - 52, z + 32);
+
+      scene.add(desk);
+
+      const geometry2 = new THREE.BoxGeometry(44, 4, 24);
+
+      const material2 = new THREE.MeshStandardMaterial({ color: 'red' });
+
+      const object = new THREE.Mesh(geometry2, material2);
+
+      object.position.set(x, y - 48, z + 40);
+
+      scene.add(object);
+    }
+
+    function addArm(scene, fingerTexture, armTexture, x, y, z, isLeft) {
+      let multiply = isLeft ? 1 : -1;
+
+      const geometry1 = new THREE.CylinderGeometry(8, 8, 28, 16);
+      const geometry2 = new THREE.CylinderGeometry(8, 8, 28, 16);
+      const geometry3 = new THREE.CylinderGeometry(8, 8, 28, 16);
+
+      const geometry4 = new THREE.SphereGeometry(6, 16, 16);
+
+      const geometry5 = new THREE.CylinderGeometry(4, 4, 18, 10, 24);
+
+      const geometry6 = new THREE.CylinderGeometry(2, 2, 16, 16);
+      const geometry7 = new THREE.CylinderGeometry(2, 2, 16, 16);
+
+      geometry1.translate(x, y + 14, z);
+      geometry2.translate(x, y + 14, z);
+      geometry3.translate(x, y + 14, z);
+
+      geometry6.translate(x, y + 8, z);
+      geometry7.translate(x, y + 8, z);
+
+      const material1 = new THREE.MeshStandardMaterial({ map: armTexture });
+
+      const material4 = new THREE.MeshStandardMaterial({ color: 0x696962 });
+
+      const material5 = new THREE.MeshStandardMaterial({ color: 0x646962 });
+
+      const material6 = new THREE.MeshStandardMaterial({ map: fingerTexture });
+
+      const arm1 = new THREE.Mesh(geometry1, material1);
+      const arm2 = new THREE.Mesh(geometry2, material1);
+      const arm3 = new THREE.Mesh(geometry3, material1);
+
+      const wrist = new THREE.Mesh(geometry4, material4);
+
+      const hand = new THREE.Mesh(geometry5, material5);
+
+      const finger1 = new THREE.Mesh(geometry6, material6);
+      const finger2 = new THREE.Mesh(geometry7, material6);
+
+      arm1.position.set(isLeft ? x - 14 : x + 14, y + 24, z + 12);
+
+      arm1.rotation.z = (Math.PI / 2.4) * multiply;
+      arm1.rotation.x = (Math.PI / 2) * multiply;
+
+      arm2.rotation.z = (Math.PI / 1) * multiply;
+      arm2.rotation.x = (-Math.PI / 8) * multiply;
+
+      arm3.rotation.z = (-Math.PI / 4) * multiply;
+      arm3.rotation.x = (Math.PI / 1) * multiply;
+
+      hand.rotation.z = (-Math.PI / 2) * multiply;
+
+      scene.add(arm1);
+      scene.add(arm2);
+      scene.add(arm3);
+
+      scene.add(wrist);
+
+      scene.add(hand);
+
+      scene.add(finger1);
+      scene.add(finger2);
+
+      return { arm1, arm2, arm3, wrist, hand, finger1, finger2 };
+    }
+
+    function runAnimation(
+      arm1,
+      arm2,
+      arm3,
+      wrist,
+      hand,
+      finger1,
+      finger2,
+      isLeft,
+      time
+    ) {
+      let multiply = isLeft ? 1 : -1;
+
+      if (isLeft) {
+        arm1.rotation.z -= Math.sin(time) * (Math.PI / 1200) * multiply;
+        arm1.rotation.y -= Math.sin(time) * (Math.PI / 1400) * multiply;
+      } else {
+        arm1.rotation.z -= Math.sin(time) * (Math.PI / 400);
+        arm1.rotation.y -= Math.cos(time) * (Math.PI / 1400) * multiply;
+      }
+
+      const arm2Position = new THREE.Vector3(0, 28, 0);
+      arm1.localToWorld(arm2Position);
+      arm2.position.copy(arm2Position);
+
+      arm2.rotation.x = -Math.PI / 4;
+
+      arm2.rotation.z -= Math.sin(time) * (Math.PI / 1200);
+      arm2.rotation.x -= Math.cos(time) * (Math.PI / 800);
+
+      const arm3Position = new THREE.Vector3(0, 28, 0);
+      arm2.localToWorld(arm3Position);
+      arm3.position.copy(arm3Position);
+
+      arm3.rotation.z -= Math.cos(time) * (Math.PI / 600) * multiply;
+      arm3.rotation.x -= Math.sin(time) * (Math.PI / 800) * multiply;
+
+      const wristPosition = new THREE.Vector3(0, 30, 0);
+      arm3.localToWorld(wristPosition);
+      wrist.position.copy(wristPosition);
+
+      const handPosition = new THREE.Vector3(0, 36, 0);
+      arm3.localToWorld(handPosition);
+      hand.position.copy(handPosition);
+      hand.rotation.z += Math.cos(time) * (Math.PI / 400) * multiply;
+      hand.rotation.x += Math.cos(time) * (Math.PI / 400) * multiply;
+
+      const finger1Position = new THREE.Vector3(0, -6, 0);
+      hand.localToWorld(finger1Position);
+      finger1.position.copy(finger1Position);
+      finger1.rotation.copy(hand.rotation);
+      finger1.rotation.z -= (Math.PI / 2) * multiply;
+      finger1.rotation.z += Math.cos(time) * (Math.PI / 12) * multiply;
+
+      const finger2Position = new THREE.Vector3(0, 6, 0);
+      hand.localToWorld(finger2Position);
+      finger2.position.copy(finger2Position);
+      finger2.rotation.copy(hand.rotation);
+      finger2.rotation.z -= (Math.PI / 2) * multiply;
+      finger2.rotation.z -= Math.cos(time) * (Math.PI / 12) * multiply;
+    }
+
+    function main() {
+      const canvas = document.querySelector('#c');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+
+      const loader = new THREE.TextureLoader();
+      const columnTexture = loader.load('column_texture.png');
+      const bodyTexture = loader.load('body_texture.png');
+      const fingerTexture = loader.load('finger_texture.png');
+      const armTexture = loader.load('arm_texture.png');
+
+      const fov = 40;
+      const aspect = 2;
+      const near = 0.1;
+      const far = 1000;
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+      camera.position.z = 360;
+
+      var controls = new OrbitControls(camera, renderer.domElement);
+      controls.listenToKeyEvents(window); // optional
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x333333);
+
+      {
+        const color = 0xffffff;
+        const intensity = 4;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(40, 120, 120);
+        scene.add(light);
+      }
+
+      addBackground(200, scene);
+
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+          renderer.setSize(width, height, false);
+        }
+        return needResize;
+      }
+
+      let time = 0;
+
+      const {
+        arm1: lArm1,
+        arm2: lArm2,
+        arm3: lArm3,
+        wrist: lWrist,
+        hand: lHand,
+        finger1: lFinger1,
+        finger2: lFinger2,
+      } = addArm(scene, fingerTexture, armTexture, 0, 0, 0, true);
+
+      const {
+        arm1: rArm1,
+        arm2: rArm2,
+        arm3: rArm3,
+        wrist: rWrist,
+        hand: rHand,
+        finger1: rFinger1,
+        finger2: rFinger2,
+      } = addArm(scene, fingerTexture, armTexture, 0, 0, 0, false);
+
+      addBody(scene, columnTexture, bodyTexture, 0, 0, 0);
+
+      addDesk(scene, 0, 0, 0);
+
+      function render() {
+        time += 0.02;
+
+        runAnimation(
+          lArm1,
+          lArm2,
+          lArm3,
+          lWrist,
+          lHand,
+          lFinger1,
+          lFinger2,
+          true,
+          time
+        );
+
+        runAnimation(
+          rArm1,
+          rArm2,
+          rArm3,
+          rWrist,
+          rHand,
+          rFinger1,
+          rFinger2,
+          false,
+          time
+        );
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement;
+          camera.aspect = canvas.clientWidth / canvas.clientHeight;
+          camera.updateProjectionMatrix();
+        }
+
+        controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+        renderer.render(scene, camera);
+        requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    main();
+  </script>
+</html>
