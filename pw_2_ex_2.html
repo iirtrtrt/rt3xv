@@ -54,40 +54,6 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
 
-    const gui = new GUI();
-
-    const myObject = {
-      myBoolean: true,
-      myString: 'lil-gui',
-      myNumber: 1,
-      myFunction: function () {
-        alert('hi');
-      },
-    };
-
-    gui.add(myObject, 'myBoolean'); // Checkbox
-    gui.add(myObject, 'myFunction'); // Button
-    gui.add(myObject, 'myString'); // Text Field
-    gui.add(myObject, 'myNumber'); // Number Field
-
-    // Add sliders to number fields by passing min and max
-    gui.add(myObject, 'myNumber', 0, 1);
-    gui.add(myObject, 'myNumber', 0, 100, 2); // snap to even numbers
-
-    // Create dropdowns by passing an array or object of named values
-    gui.add(myObject, 'myNumber', [0, 1, 2]);
-    gui.add(myObject, 'myNumber', { Label1: 0, Label2: 1, Label3: 2 });
-
-    // Create color pickers for multiple color formats
-    const colorFormats = {
-      string: '#ffffff',
-      int: 0xffffff,
-      object: { r: 1, g: 1, b: 1 },
-      array: [1, 1, 1],
-    };
-
-    gui.addColor(colorFormats, 'string');
-
     function addPlanes(length, scene) {
       const geometry1 = new THREE.PlaneGeometry(length, length);
       const material1 = new THREE.MeshLambertMaterial({
@@ -222,13 +188,33 @@
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x333333);
 
-      {
-        const color = 0xffffff;
-        const intensity = 4;
-        const light = new THREE.AmbientLight(color, intensity);
-        light.position.set(0, 60, 0);
-        scene.add(light);
+      const color = 0xffffff;
+      const intensity = 0.4;
+      const light = new THREE.AmbientLight(color, intensity);
+      light.position.set(0, 60, 0);
+      scene.add(light);
+
+      const gui = new GUI();
+
+      class ColorGUIHelper {
+        constructor(object, prop) {
+          this.object = object;
+          this.prop = prop;
+        }
+        get value() {
+          return `#${this.object[this.prop].getHexString()}`;
+        }
+        set value(hexString) {
+          this.object[this.prop].set(hexString);
+        }
       }
+      const myObject = {
+        color: 1,
+        intensity: 1,
+      };
+
+      gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('color');
+      gui.add(light, 'intensity', 0, 5, 0.01);
 
       addPlanes(120, scene);
       addCone(120, scene);
