@@ -19,10 +19,21 @@
         height: 100%;
         display: block;
       }
+      .mode {
+        position: absolute;
+        left: 1em;
+        top: 1em;
+        background-color: aliceblue;
+        padding: 4px;
+      }
     </style>
   </head>
   <body>
     <canvas id="c"></canvas>
+    <div class="mode">
+      <a href="?allowvr=true" id="vr">Allow VR</a>
+      <a href="?" id="nonvr">Use Non-VR Mode</a>
+    </div>
   </body>
 
   <script
@@ -41,6 +52,41 @@
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
+
+    const gui = new GUI();
+
+    const myObject = {
+      myBoolean: true,
+      myString: 'lil-gui',
+      myNumber: 1,
+      myFunction: function () {
+        alert('hi');
+      },
+    };
+
+    gui.add(myObject, 'myBoolean'); // Checkbox
+    gui.add(myObject, 'myFunction'); // Button
+    gui.add(myObject, 'myString'); // Text Field
+    gui.add(myObject, 'myNumber'); // Number Field
+
+    // Add sliders to number fields by passing min and max
+    gui.add(myObject, 'myNumber', 0, 1);
+    gui.add(myObject, 'myNumber', 0, 100, 2); // snap to even numbers
+
+    // Create dropdowns by passing an array or object of named values
+    gui.add(myObject, 'myNumber', [0, 1, 2]);
+    gui.add(myObject, 'myNumber', { Label1: 0, Label2: 1, Label3: 2 });
+
+    // Create color pickers for multiple color formats
+    const colorFormats = {
+      string: '#ffffff',
+      int: 0xffffff,
+      object: { r: 1, g: 1, b: 1 },
+      array: [1, 1, 1],
+    };
+
+    gui.addColor(colorFormats, 'string');
 
     function addPlanes(length, scene) {
       const geometry1 = new THREE.PlaneGeometry(length, length);
@@ -146,6 +192,29 @@
       const far = 1000;
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
       camera.position.z = 240;
+
+      const params = new URL(document.location).searchParams;
+      const allowvr = params.get('allowvr') === 'true';
+      if (allowvr) {
+        renderer.xr.enabled = true;
+        document.body.appendChild(VRButton.createButton(renderer));
+        document.querySelector('#vr').style.display = 'none';
+
+        renderer.xr.addEventListener('sessionstart', () => {
+          const refSpace = renderer.xr.getReferenceSpace();
+          renderer.xr.setReferenceSpace(
+            refSpace.getOffsetReferenceSpace(
+              new XRRigidTransform({ x: 0, y: 0, z: -160 })
+            )
+          );
+        });
+      } else {
+        // no VR, add some controls
+        const controls = new OrbitControls(camera, canvas);
+        controls.target.set(0, 1.6, -2);
+        controls.update();
+        document.querySelector('#nonvr').style.display = 'none';
+      }
 
       var controls = new OrbitControls(camera, renderer.domElement);
       controls.listenToKeyEvents(window); // optional
