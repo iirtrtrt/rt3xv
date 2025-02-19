@@ -19,10 +19,21 @@
         height: 100%;
         display: block;
       }
+      .mode {
+        position: absolute;
+        left: 1em;
+        top: 1em;
+        background-color: aliceblue;
+        padding: 4px;
+      }
     </style>
   </head>
   <body>
     <canvas id="c"></canvas>
+    <div class="mode">
+      <a href="?allowvr=true" id="vr">Allow VR</a>
+      <a href="?" id="nonvr">Use Non-VR Mode</a>
+    </div>
   </body>
 
   <script
@@ -41,6 +52,7 @@
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
 
     function addPlanes(length, scene) {
       const geometry1 = new THREE.PlaneGeometry(length, length);
@@ -143,19 +155,114 @@
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
       camera.position.z = 240;
 
+      const params = new URL(document.location).searchParams;
+      const allowvr = params.get('allowvr') === 'true';
+      if (allowvr) {
+        renderer.xr.enabled = true;
+        document.body.appendChild(VRButton.createButton(renderer));
+        document.querySelector('#vr').style.display = 'none';
+
+        renderer.xr.addEventListener('sessionstart', () => {
+          const refSpace = renderer.xr.getReferenceSpace();
+          renderer.xr.setReferenceSpace(
+            refSpace.getOffsetReferenceSpace(
+              new XRRigidTransform({ x: 0, y: 0, z: -160 })
+            )
+          );
+        });
+      } else {
+        // no VR, add some controls
+        const controls = new OrbitControls(camera, canvas);
+        controls.target.set(0, 1.6, -2);
+        controls.update();
+        document.querySelector('#nonvr').style.display = 'none';
+      }
+
       var controls = new OrbitControls(camera, renderer.domElement);
       controls.listenToKeyEvents(window); // optional
 
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x333333);
 
-      {
-        const color = 0xffffff;
-        const intensity = 0.4;
-        const light = new THREE.AmbientLight(color, intensity);
-        light.position.set(0, 60, 0);
-        scene.add(light);
+      const color = 0xffffff;
+      const intensity = 0.1;
+      const light = new THREE.AmbientLight(color, intensity);
+      light.position.set(0, 60, 0);
+      scene.add(light);
+
+      const gui = new GUI();
+
+      class ColorGUIHelper {
+        constructor(object, prop) {
+          this.object = object;
+          this.prop = prop;
+        }
+        get value() {
+          return `#${this.object[this.prop].getHexString()}`;
+        }
+        set value(hexString) {
+          this.object[this.prop].set(hexString);
+        }
       }
+
+      const myObject = {
+        directionalLight: false,
+        pointLight: false,
+        spotLight: false,
+        hemisphereLight: false,
+      };
+
+      const directionalLight = new THREE.DirectionalLight(color, 4);
+      directionalLight.position.set(0, 60, 0);
+      gui
+        .add(myObject, 'directionalLight')
+        .name('directionalLight')
+        .onChange((value) => {
+          directionalLight.visible = value;
+
+          if (value) {
+            scene.add(directionalLight);
+          }
+        });
+
+      const pointLight = new THREE.PointLight(color, 4000);
+      pointLight.position.set(0, 60, 0);
+      gui
+        .add(myObject, 'pointLight')
+        .name('pointLight')
+        .onChange((value) => {
+          pointLight.visible = value;
+
+          if (value) {
+            scene.add(pointLight);
+          }
+        });
+
+      const spotLight = new THREE.SpotLight(color, 4000);
+      spotLight.position.set(0, 60, 0);
+      gui
+        .add(myObject, 'spotLight')
+        .name('spotLight')
+        .onChange((value) => {
+          spotLight.visible = value;
+
+          if (value) {
+            scene.add(spotLight);
+          }
+        });
+
+      const hemisphereLight = new THREE.HemisphereLight(color, color, 1);
+      hemisphereLight.position.set(0, 60, 0);
+      gui
+        .add(myObject, 'hemisphereLight')
+        .name('hemisphereLight')
+        .onChange((value) => {
+          hemisphereLight.visible = value;
+
+          if (value) {
+            scene.add(hemisphereLight);
+          }
+        });
 
       addPlanes(120, scene);
       addCone(120, scene);
