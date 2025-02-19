@@ -52,6 +52,7 @@
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { VRButton } from 'three/addons/webxr/VRButton.js';
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
 
     function addPlanes(length, scene) {
@@ -193,23 +194,42 @@
       const gui = new GUI();
 
       class ColorGUIHelper {
-        constructor(object, prop) {
-          this.object = object;
+        constructor(objects, prop) {
+          this.objects = objects;
           this.prop = prop;
         }
         get value() {
-          return `#${this.object[this.prop].getHexString()}`;
+          return `#${this.objects[0][this.prop].getHexString()}`;
         }
         set value(hexString) {
-          this.object[this.prop].set(hexString);
+          this.objects.forEach((obj) => obj[this.prop].set(hexString));
+        }
+      }
+
+      class GeometryGUIHelper {
+        constructor(objects, propPath) {
+          this.objects = objects;
+          this.propPath = propPath.split('.');
+        }
+
+        get value() {
+          return this.objects[0][this.propPath[0]][this.propPath[1]];
+        }
+
+        set value(val) {
+          this.objects.forEach((obj) => {
+            obj[this.propPath[0]][this.propPath[1]] = val;
+          });
         }
       }
 
       const myObject = {
+        color: 1,
         directionalLight: false,
         pointLight: false,
         spotLight: false,
         hemisphereLight: false,
+        xAxis: 0,
       };
 
       const directionalLight = new THREE.DirectionalLight(color, 4);
@@ -263,6 +283,28 @@
             scene.add(hemisphereLight);
           }
         });
+
+      gui
+        .addColor(
+          new ColorGUIHelper(
+            [directionalLight, pointLight, spotLight, hemisphereLight],
+            'color'
+          ),
+          'value'
+        )
+        .name('color');
+      gui
+        .add(
+          new GeometryGUIHelper(
+            [directionalLight, pointLight, spotLight, hemisphereLight],
+            'position.x'
+          ),
+          'value',
+          -60,
+          60,
+          1
+        )
+        .name('xAxis');
 
       addPlanes(120, scene);
       addCone(120, scene);

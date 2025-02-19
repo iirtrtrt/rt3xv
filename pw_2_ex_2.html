@@ -52,9 +52,10 @@
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { VRButton } from 'three/addons/webxr/VRButton.js';
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
 
-    function addPlanes(length, scene) {
+    function addWalls(length, scene) {
       const geometry1 = new THREE.PlaneGeometry(length, length);
       const material1 = new THREE.MeshLambertMaterial({
         color: 'white',
@@ -108,11 +109,13 @@
         side: THREE.DoubleSide,
       });
 
-      const ceiling = new THREE.Mesh(geometry4, material4);
+      const ceiling = new THREE.Mesh(geometry5, material5);
       ceiling.rotation.x = Math.PI / 2;
       ceiling.position.set(0, length / 2, 0);
 
       scene.add(ceiling);
+
+      return { backWall, leftWall, rightWall, ceiling, floor };
     }
 
     function addCone(length, scene) {
@@ -185,7 +188,7 @@
       scene.background = new THREE.Color(0x333333);
 
       const color = 0xffffff;
-      const intensity = 0.4;
+      const intensity = 4;
       const light = new THREE.AmbientLight(color, intensity);
       light.position.set(0, 60, 0);
       scene.add(light);
@@ -205,18 +208,42 @@
         }
       }
 
-      const myObject = {
-        color: 1,
-        intensity: 1,
-      };
-
-      gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('color');
-      gui.add(light, 'intensity', 0, 16, 0.01);
-
-      addPlanes(120, scene);
       addCone(120, scene);
       addCylinder(120, scene);
       addSphere(120, scene);
+
+      const { backWall, leftWall, rightWall, ceiling, floor } = addWalls(
+        120,
+        scene
+      );
+
+      const myObject = {
+        backWall: 1,
+        leftWall: 1,
+        rightWall: 1,
+        ceiling: 1,
+        floor: 1,
+      };
+
+      gui
+        .addColor(new ColorGUIHelper(backWall.material, 'color'), 'value')
+        .name('backWall');
+
+      gui
+        .addColor(new ColorGUIHelper(leftWall.material, 'color'), 'value')
+        .name('leftWall');
+
+      gui
+        .addColor(new ColorGUIHelper(rightWall.material, 'color'), 'value')
+        .name('rightWall');
+
+      gui
+        .addColor(new ColorGUIHelper(ceiling.material, 'color'), 'value')
+        .name('ceiling');
+
+      gui
+        .addColor(new ColorGUIHelper(floor.material, 'color'), 'value')
+        .name('floor');
 
       function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
