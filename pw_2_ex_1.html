@@ -42,7 +42,7 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    function addPlanes(length, scene) {
+    function addWalls(length, scene) {
       const geometry1 = new THREE.PlaneGeometry(length, length);
       const material1 = new THREE.MeshLambertMaterial({
         color: 'white',
@@ -157,7 +157,7 @@
         scene.add(light);
       }
 
-      addPlanes(120, scene);
+      addWalls(120, scene);
       addCone(120, scene);
       addCylinder(120, scene);
       addSphere(120, scene);
