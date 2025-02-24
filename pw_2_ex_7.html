@@ -55,7 +55,6 @@
     import { VRButton } from 'three/addons/webxr/VRButton.js';
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
     import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
-    import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
     import Stats from 'three/addons/libs/stats.module.js';
 
     function addWalls(length, scene) {
@@ -471,29 +470,10 @@
         )
         .name('xAxis');
 
-      const group = new InteractiveGroup();
-
-      const mesh = new HTMLMesh(gui.domElement);
-      mesh.position.x = -0.75;
-      mesh.position.y = 1.5;
-      mesh.position.z = -0.5;
-      mesh.rotation.y = Math.PI / 4;
-      mesh.scale.setScalar(2);
-      group.add(mesh);
-
-      // Add stats.js
       stats = new Stats();
       stats.dom.style.width = '80px';
       stats.dom.style.height = '48px';
       document.body.appendChild(stats.dom);
-
-      statsMesh = new HTMLMesh(stats.dom);
-      statsMesh.position.x = -0.75;
-      statsMesh.position.y = 2;
-      statsMesh.position.z = -0.6;
-      statsMesh.rotation.y = Math.PI / 4;
-      statsMesh.scale.setScalar(2.5);
-      group.add(statsMesh);
 
       addWalls(120, scene);
       addCone(32, lambertMaterial, scene);
