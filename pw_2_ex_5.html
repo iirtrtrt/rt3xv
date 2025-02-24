@@ -30,10 +30,6 @@
   </head>
   <body>
     <canvas id="c"></canvas>
-    <div class="mode">
-      <a href="?allowvr=true" id="vr">Allow VR</a>
-      <a href="?" id="nonvr">Use Non-VR Mode</a>
-    </div>
   </body>
 
   <script
@@ -52,7 +48,6 @@
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { VRButton } from 'three/addons/webxr/VRButton.js';
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
 
     function addWalls(length, scene) {
@@ -335,29 +330,6 @@
       const far = 1000;
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
       camera.position.z = 240;
-
-      const params = new URL(document.location).searchParams;
-      const allowvr = params.get('allowvr') === 'true';
-      if (allowvr) {
-        renderer.xr.enabled = true;
-        document.body.appendChild(VRButton.createButton(renderer));
-        document.querySelector('#vr').style.display = 'none';
-
-        renderer.xr.addEventListener('sessionstart', () => {
-          const refSpace = renderer.xr.getReferenceSpace();
-          renderer.xr.setReferenceSpace(
-            refSpace.getOffsetReferenceSpace(
-              new XRRigidTransform({ x: 0, y: 0, z: -160 })
-            )
-          );
-        });
-      } else {
-        // no VR, add some controls
-        const controls = new OrbitControls(camera, canvas);
-        controls.target.set(0, 1.6, -2);
-        controls.update();
-        document.querySelector('#nonvr').style.display = 'none';
-      }
 
       var controls = new OrbitControls(camera, renderer.domElement);
       controls.listenToKeyEvents(window); // optional
