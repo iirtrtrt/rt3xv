@@ -96,36 +96,143 @@
         side: THREE.DoubleSide,
       });
 
-      const ceiling = new THREE.Mesh(geometry4, material4);
+      const ceiling = new THREE.Mesh(geometry5, material5);
       ceiling.rotation.x = Math.PI / 2;
       ceiling.position.set(0, length / 2, 0);
 
       scene.add(ceiling);
+
+      return { backWall, leftWall, rightWall, ceiling, floor };
     }
 
-    function addCone(length, scene) {
-      const geometry = new THREE.ConeGeometry(16, 32, 32);
-      const material = new THREE.MeshLambertMaterial({ color: 'blue' });
+    function addChair(length, texture1, scene) {
+      const geometry1 = new THREE.BoxGeometry(length, 2, length);
+      const material1 = new THREE.MeshStandardMaterial({ map: texture1 });
+
+      const chair = new THREE.Mesh(geometry1, material1);
+      chair.position.set(0, (-length * 7) / 4, -length);
+
+      scene.add(chair);
+
+      const chairBack = new THREE.Mesh(geometry1, material1);
+      chairBack.rotation.z = Math.PI / 2;
+      chairBack.rotation.y = Math.PI / 2;
+      chairBack.position.set(0, (-length * 7) / 5, (-length * 3) / 2);
+
+      scene.add(chairBack);
+
+      const geometry2 = new THREE.CylinderGeometry(
+        1,
+        1,
+        60 + (-length * 7) / 4
+      );
+      const material2 = new THREE.MeshStandardMaterial({ color: 0xd1cdc1 });
+
+      const leg1 = new THREE.Mesh(geometry2, material2);
+      leg1.position.set(
+        -length / 2 + 1,
+        (-length * 7) / 4 - length / 2 + 3,
+        -length - length / 2 + 1
+      );
+
+      scene.add(leg1);
+
+      const leg2 = new THREE.Mesh(geometry2, material2);
+      leg2.position.set(
+        length / 2 - 1,
+        (-length * 7) / 4 - length / 2 + 3,
+        -length - length / 2 + 1
+      );
+
+      scene.add(leg2);
+
+      const leg3 = new THREE.Mesh(geometry2, material2);
+      leg3.position.set(
+        -length / 2 + 1,
+        (-length * 7) / 4 - length / 2 + 3,
+        -length + length / 2 - 1
+      );
+
+      scene.add(leg3);
+
+      const leg4 = new THREE.Mesh(geometry2, material2);
+      leg4.position.set(
+        length / 2 - 1,
+        (-length * 7) / 4 - length / 2 + 3,
+        -length + length / 2 - 1
+      );
+
+      scene.add(leg4);
+    }
+
+    function addDesk(length, scene) {
+      const geometry1 = new THREE.BoxGeometry(length * 3, 2, length);
+      const material1 = new THREE.MeshStandardMaterial({ color: 0xd2cdc2 });
+      const desk = new THREE.Mesh(geometry1, material1);
+      desk.position.set(0, -length, 0);
+
+      scene.add(desk);
+
+      const geometry2 = new THREE.CylinderGeometry(1, 1, 60 - length);
+      const material2 = new THREE.MeshStandardMaterial({ color: 0xd2cdc2 });
+
+      const leg1 = new THREE.Mesh(geometry2, material2);
+      leg1.position.set(
+        (-length * 4) / 3,
+        -60 + (60 - length) / 2,
+        -length / 2 + 2
+      );
+
+      scene.add(leg1);
+
+      const leg2 = new THREE.Mesh(geometry2, material2);
+      leg2.position.set(
+        (-length * 4) / 3,
+        -60 + (60 - length) / 2,
+        length / 2 - 2
+      );
+
+      scene.add(leg2);
+
+      const leg3 = new THREE.Mesh(geometry2, material2);
+      leg3.position.set(
+        (length * 4) / 3,
+        -60 + (60 - length) / 2,
+        -length / 2 + 2
+      );
+
+      scene.add(leg3);
+
+      const leg4 = new THREE.Mesh(geometry2, material2);
+      leg4.position.set(
+        (length * 4) / 3,
+        -60 + (60 - length) / 2,
+        length / 2 - 2
+      );
+
+      scene.add(leg4);
+    }
+
+    function addCone(length, material, scene) {
+      const geometry = new THREE.ConeGeometry(4, 8, 32);
       const cone = new THREE.Mesh(geometry, material);
-      cone.position.set(-length / 4, -length / 2 + 16, 0);
+      cone.position.set(-length + 4, -length + 5, -length / 2 + 6);
 
       scene.add(cone);
     }
 
-    function addCylinder(length, scene) {
-      const geometry = new THREE.CylinderGeometry(16, 16, 32);
-      const material = new THREE.MeshPhongMaterial({ color: 'yellow' });
+    function addCylinder(length, material, scene) {
+      const geometry = new THREE.CylinderGeometry(4, 4, 8);
       const cylinder = new THREE.Mesh(geometry, material);
-      cylinder.position.set(length / 4, -length / 2 + 16, 0);
+      cylinder.position.set(length - 4, -length + 5, -length / 2 + 6);
 
       scene.add(cylinder);
     }
 
-    function addSphere(length, scene) {
-      const geometry = new THREE.SphereGeometry(24, 32, 32);
-      const material = new THREE.MeshPhysicalMaterial({ color: 'orange' });
+    function addSphere(length, material, scene) {
+      const geometry = new THREE.SphereGeometry(6, 32, 32);
       const sphere = new THREE.Mesh(geometry, material);
-      sphere.position.set(0, -length / 2 + 24, -length / 4);
+      sphere.position.set(0, -length + 7, length / 2 - 6);
 
       scene.add(sphere);
     }
@@ -135,6 +242,7 @@
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 
       const loader = new THREE.TextureLoader();
+      const texture = loader.load('chair.png');
 
       const fov = 40;
       const aspect = 2;
@@ -157,10 +265,39 @@
         scene.add(light);
       }
 
+      const lambertMaterial = new THREE.MeshLambertMaterial({
+        color: 'blue',
+        opacity: 0.6,
+        transparent: false,
+        envMap: null,
+        fog: true,
+      });
+
+      const phongMaterial = new THREE.MeshPhongMaterial({
+        color: 'yellow',
+        opacity: 0.6,
+        shininess: 30,
+        transparent: false,
+        envMap: null,
+        specular: 'green',
+        fog: true,
+      });
+
+      const physicalMaterial = new THREE.MeshPhysicalMaterial({
+        color: 'orange',
+        opacity: 0.6,
+        transparent: false,
+        envMap: null,
+        specular: 'green',
+        fog: true,
+      });
+
       addWalls(120, scene);
-      addCone(120, scene);
-      addCylinder(120, scene);
-      addSphere(120, scene);
+      addCone(32, lambertMaterial, scene);
+      addCylinder(32, phongMaterial, scene);
+      addSphere(32, physicalMaterial, scene);
+      addDesk(32, scene);
+      addChair(24, texture, scene);
 
       function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
