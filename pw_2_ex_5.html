@@ -56,64 +56,127 @@
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
 
     function addWalls(length, scene) {
+      const intensity = 1;
+      const emissiveIntensity = 1;
+
       const geometry1 = new THREE.PlaneGeometry(length, length);
-      const material1 = new THREE.MeshLambertMaterial({
+      const material1 = new THREE.MeshStandardMaterial({
         color: 'white',
         side: THREE.DoubleSide,
+        emissive: 'white',
+        emissiveIntensity: emissiveIntensity,
       });
 
       const backWall = new THREE.Mesh(geometry1, material1);
       backWall.position.set(0, 0, -(length / 2));
 
+      const backWallLight = new THREE.RectAreaLight(
+        'white',
+        intensity,
+        length,
+        length
+      );
+      backWallLight.position.copy(backWall.position);
+      backWallLight.lookAt(0, 0, 0);
+
       scene.add(backWall);
+      scene.add(backWallLight);
 
       const geometry2 = new THREE.PlaneGeometry(length, length);
       const material2 = new THREE.MeshLambertMaterial({
         color: 'red',
         side: THREE.DoubleSide,
+        emissive: 'red',
+        emissiveIntensity: emissiveIntensity,
       });
 
       const leftWall = new THREE.Mesh(geometry2, material2);
       leftWall.rotation.y = Math.PI / 2;
       leftWall.position.set(-(length / 2), 0, 0);
 
+      const leftWallLight = new THREE.RectAreaLight(
+        'red',
+        intensity,
+        length,
+        length
+      );
+      leftWallLight.position.copy(backWall.position);
+      leftWallLight.lookAt(0, 0, 0);
+
       scene.add(leftWall);
+      scene.add(leftWallLight);
 
       const geometry3 = new THREE.PlaneGeometry(length, length);
       const material3 = new THREE.MeshLambertMaterial({
         color: 'green',
         side: THREE.DoubleSide,
+        emissive: 'green',
+        emissiveIntensity: emissiveIntensity,
       });
 
       const rightWall = new THREE.Mesh(geometry3, material3);
       rightWall.rotation.y = -Math.PI / 2;
       rightWall.position.set(length / 2, 0, 0);
 
+      const rightWallLight = new THREE.RectAreaLight(
+        'green',
+        intensity,
+        length,
+        length
+      );
+      rightWallLight.position.copy(rightWall.position);
+      rightWallLight.lookAt(0, 0, 0);
+
       scene.add(rightWall);
+      scene.add(rightWallLight);
 
       const geometry4 = new THREE.PlaneGeometry(length, length);
       const material4 = new THREE.MeshLambertMaterial({
         color: 'white',
         side: THREE.DoubleSide,
+        emissive: 'white',
+        emissiveIntensity: emissiveIntensity,
       });
 
       const floor = new THREE.Mesh(geometry4, material4);
       floor.rotation.x = -Math.PI / 2;
       floor.position.set(0, -(length / 2), 0);
 
+      const floorLight = new THREE.RectAreaLight(
+        'white',
+        intensity,
+        length,
+        length
+      );
+      floorLight.position.copy(floor.position);
+      floorLight.lookAt(0, 0, 0);
+
       scene.add(floor);
+      scene.add(floorLight);
 
       const geometry5 = new THREE.PlaneGeometry(length, length);
       const material5 = new THREE.MeshLambertMaterial({
         color: 'white',
         side: THREE.DoubleSide,
+        emissive: 'white',
+        emissiveIntensity: emissiveIntensity,
       });
 
       const ceiling = new THREE.Mesh(geometry4, material4);
       ceiling.rotation.x = Math.PI / 2;
       ceiling.position.set(0, length / 2, 0);
 
+      const ceilingLight = new THREE.RectAreaLight(
+        'white',
+        intensity,
+        length,
+        length
+      );
+      ceilingLight.position.copy(ceiling.position);
+      ceilingLight.lookAt(0, 0, 0);
+
       scene.add(ceiling);
+      scene.add(ceilingLight);
 
       return { backWall, leftWall, rightWall, ceiling, floor };
     }
@@ -303,10 +366,10 @@
       scene.background = new THREE.Color(0x333333);
 
       const color = 0xffffff;
-      const intensity = 0.2;
-      const light = new THREE.AmbientLight(color, intensity);
-      light.position.set(0, 60, 0);
-      scene.add(light);
+      // const intensity = 0.2;
+      // const light = new THREE.AmbientLight(color, intensity);
+      // light.position.set(0, 60, 0);
+      // scene.add(light);
 
       const pointLight = new THREE.PointLight(color, 16000);
       pointLight.position.set(0, 60, 0);
