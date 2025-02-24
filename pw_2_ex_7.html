@@ -56,6 +56,7 @@
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
     import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
     import Stats from 'three/addons/libs/stats.module.js';
+    import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
 
     function addWalls(length, scene) {
       const geometry1 = new THREE.PlaneGeometry(length, length);
@@ -345,8 +346,6 @@
         color: 'orange',
       });
 
-      const gui = new GUI();
-
       class ColorGUIHelper {
         constructor(objects, prop) {
           this.objects = objects;
@@ -395,6 +394,22 @@
       directionalLight.shadow.camera.bottom = -60;
       directionalLight.shadow.camera.near = 0.1;
       directionalLight.shadow.camera.far = 240;
+
+      const pointLight = new THREE.PointLight(color, 4000);
+      pointLight.castShadow = true;
+      pointLight.position.set(0, 60, 0);
+
+      const spotLight = new THREE.SpotLight(color, 4000);
+      spotLight.castShadow = true;
+      spotLight.position.set(0, 60, 0);
+
+      const hemisphereLight = new THREE.HemisphereLight(color, color, 1);
+      hemisphereLight.castShadow = true;
+      hemisphereLight.position.set(0, 60, 0);
+
+      const gui = new GUI({ width: 300 });
+      gui.domElement.style.visibility = 'hidden';
+
       gui
         .add(myObject, 'directionalLight')
         .name('directionalLight')
@@ -405,10 +420,6 @@
             scene.add(directionalLight);
           }
         });
-
-      const pointLight = new THREE.PointLight(color, 4000);
-      pointLight.castShadow = true;
-      pointLight.position.set(0, 60, 0);
       gui
         .add(myObject, 'pointLight')
         .name('pointLight')
@@ -419,10 +430,6 @@
             scene.add(pointLight);
           }
         });
-
-      const spotLight = new THREE.SpotLight(color, 4000);
-      spotLight.castShadow = true;
-      spotLight.position.set(0, 60, 0);
       gui
         .add(myObject, 'spotLight')
         .name('spotLight')
@@ -433,10 +440,6 @@
             scene.add(spotLight);
           }
         });
-
-      const hemisphereLight = new THREE.HemisphereLight(color, color, 1);
-      hemisphereLight.castShadow = true;
-      hemisphereLight.position.set(0, 60, 0);
       gui
         .add(myObject, 'hemisphereLight')
         .name('hemisphereLight')
@@ -447,7 +450,6 @@
             scene.add(hemisphereLight);
           }
         });
-
       gui
         .addColor(
           new ColorGUIHelper(
@@ -469,6 +471,30 @@
           1
         )
         .name('xAxis');
+
+      const geometry = new THREE.BufferGeometry();
+
+      const controller1 = renderer.xr.getController(0);
+      controller1.add(new THREE.Line(geometry));
+      scene.add(controller1);
+
+      const controller2 = renderer.xr.getController(1);
+      controller2.add(new THREE.Line(geometry));
+      scene.add(controller2);
+
+      const group = new InteractiveGroup();
+      group.listenToPointerEvents(renderer, camera);
+      group.listenToXRControllerEvents(controller1);
+      group.listenToXRControllerEvents(controller2);
+      scene.add(group);
+
+      const mesh = new HTMLMesh(gui.domElement);
+      mesh.position.x = -0.75;
+      mesh.position.y = 1.5;
+      mesh.position.z = -0.5;
+      mesh.rotation.y = Math.PI / 4;
+      mesh.scale.setScalar(2);
+      group.add(mesh);
 
       stats = new Stats();
       stats.dom.style.width = '80px';
