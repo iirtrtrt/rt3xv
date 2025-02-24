@@ -408,8 +408,6 @@
       hemisphereLight.position.set(0, 60, 0);
 
       const gui = new GUI({ width: 300 });
-      gui.domElement.style.visibility = 'hidden';
-
       gui
         .add(myObject, 'directionalLight')
         .name('directionalLight')
@@ -471,6 +469,7 @@
           1
         )
         .name('xAxis');
+      gui.domElement.style.visibility = 'hidden';
 
       const geometry = new THREE.BufferGeometry();
 
@@ -489,17 +488,25 @@
       scene.add(group);
 
       const mesh = new HTMLMesh(gui.domElement);
-      mesh.position.x = -0.75;
-      mesh.position.y = 1.5;
-      mesh.position.z = -0.5;
+      mesh.position.x = -20;
+      mesh.position.y = -20;
+      mesh.position.z = 80;
       mesh.rotation.y = Math.PI / 4;
-      mesh.scale.setScalar(2);
+      mesh.scale.setScalar(200);
       group.add(mesh);
 
       stats = new Stats();
       stats.dom.style.width = '80px';
       stats.dom.style.height = '48px';
       document.body.appendChild(stats.dom);
+
+      statsMesh = new HTMLMesh(stats.dom);
+      statsMesh.position.x = -20;
+      statsMesh.position.y = 2;
+      statsMesh.position.z = 80;
+      statsMesh.rotation.y = Math.PI / 4;
+      statsMesh.scale.setScalar(2.5);
+      group.add(statsMesh);
 
       addWalls(120, scene);
       addCone(32, lambertMaterial, scene);
@@ -529,6 +536,11 @@
         controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
         renderer.render(scene, camera);
         // requestAnimationFrame(render);
+        stats.update();
+
+        // Canvas elements doesn't trigger DOM updates, so we have to update the texture
+        mesh.material.map.update();
+        statsMesh.material.map.update();
       }
 
       // requestAnimationFrame(render);
