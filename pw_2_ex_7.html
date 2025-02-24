@@ -500,14 +500,6 @@
       stats.dom.style.height = '48px';
       document.body.appendChild(stats.dom);
 
-      statsMesh = new HTMLMesh(stats.dom);
-      statsMesh.position.x = -20;
-      statsMesh.position.y = 2;
-      statsMesh.position.z = 80;
-      statsMesh.rotation.y = Math.PI / 4;
-      statsMesh.scale.setScalar(2.5);
-      group.add(statsMesh);
-
       addWalls(120, scene);
       addCone(32, lambertMaterial, scene);
       addCylinder(32, phongMaterial, scene);
@@ -540,7 +532,6 @@
 
         // Canvas elements doesn't trigger DOM updates, so we have to update the texture
         mesh.material.map.update();
-        statsMesh.material.map.update();
       }
 
       // requestAnimationFrame(render);
