@@ -1,0 +1,460 @@
+<!-- Licensed under a BSD license. See license.html for license -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>Three.js - Custom BufferGeometry</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      #c {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .mode {
+        position: absolute;
+        left: 1em;
+        top: 1em;
+        background-color: aliceblue;
+        padding: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <div class="mode">
+      <a href="?allowvr=true" id="vr">Allow VR</a>
+      <a href="?" id="nonvr">Use Non-VR Mode</a>
+    </div>
+  </body>
+
+  <script
+    async
+    src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+  ></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.172.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.172.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { VRButton } from 'three/addons/webxr/VRButton.js';
+    import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
+
+    function addWalls(length, scene) {
+      const geometry1 = new THREE.PlaneGeometry(length, length);
+      const material1 = new THREE.MeshLambertMaterial({
+        color: 'white',
+        side: THREE.DoubleSide,
+      });
+
+      const backWall = new THREE.Mesh(geometry1, material1);
+      backWall.position.set(0, 0, -(length / 2));
+
+      scene.add(backWall);
+
+      const geometry2 = new THREE.PlaneGeometry(length, length);
+      const material2 = new THREE.MeshLambertMaterial({
+        color: 'red',
+        side: THREE.DoubleSide,
+      });
+
+      const leftWall = new THREE.Mesh(geometry2, material2);
+      leftWall.rotation.y = Math.PI / 2;
+      leftWall.position.set(-(length / 2), 0, 0);
+
+      scene.add(leftWall);
+
+      const geometry3 = new THREE.PlaneGeometry(length, length);
+      const material3 = new THREE.MeshLambertMaterial({
+        color: 'green',
+        side: THREE.DoubleSide,
+      });
+
+      const rightWall = new THREE.Mesh(geometry3, material3);
+      rightWall.rotation.y = -Math.PI / 2;
+      rightWall.position.set(length / 2, 0, 0);
+
+      scene.add(rightWall);
+
+      const geometry4 = new THREE.PlaneGeometry(length, length);
+      const material4 = new THREE.MeshLambertMaterial({
+        color: 'white',
+        side: THREE.DoubleSide,
+      });
+
+      const floor = new THREE.Mesh(geometry4, material4);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.set(0, -(length / 2), 0);
+
+      scene.add(floor);
+
+      const geometry5 = new THREE.PlaneGeometry(length, length);
+      const material5 = new THREE.MeshLambertMaterial({
+        color: 'white',
+        side: THREE.DoubleSide,
+      });
+
+      const ceiling = new THREE.Mesh(geometry5, material5);
+      ceiling.rotation.x = Math.PI / 2;
+      ceiling.position.set(0, length / 2, 0);
+
+      scene.add(ceiling);
+
+      return { backWall, leftWall, rightWall, ceiling, floor };
+    }
+
+    function addChair(length, texture1, scene) {
+      const geometry1 = new THREE.BoxGeometry(length, 2, length);
+      const material1 = new THREE.MeshStandardMaterial({ map: texture1 });
+
+      const chair = new THREE.Mesh(geometry1, material1);
+      chair.position.set(0, (-length * 7) / 4, -length);
+
+      scene.add(chair);
+
+      const chairBack = new THREE.Mesh(geometry1, material1);
+      chairBack.rotation.z = Math.PI / 2;
+      chairBack.rotation.y = Math.PI / 2;
+      chairBack.position.set(0, (-length * 7) / 5, (-length * 3) / 2);
+
+      scene.add(chairBack);
+
+      const geometry2 = new THREE.CylinderGeometry(
+        1,
+        1,
+        60 + (-length * 7) / 4
+      );
+      const material2 = new THREE.MeshStandardMaterial({ color: 0xd1cdc1 });
+
+      const leg1 = new THREE.Mesh(geometry2, material2);
+      leg1.position.set(
+        -length / 2 + 1,
+        (-length * 7) / 4 - length / 2 + 3,
+        -length - length / 2 + 1
+      );
+
+      scene.add(leg1);
+
+      const leg2 = new THREE.Mesh(geometry2, material2);
+      leg2.position.set(
+        length / 2 - 1,
+        (-length * 7) / 4 - length / 2 + 3,
+        -length - length / 2 + 1
+      );
+
+      scene.add(leg2);
+
+      const leg3 = new THREE.Mesh(geometry2, material2);
+      leg3.position.set(
+        -length / 2 + 1,
+        (-length * 7) / 4 - length / 2 + 3,
+        -length + length / 2 - 1
+      );
+
+      scene.add(leg3);
+
+      const leg4 = new THREE.Mesh(geometry2, material2);
+      leg4.position.set(
+        length / 2 - 1,
+        (-length * 7) / 4 - length / 2 + 3,
+        -length + length / 2 - 1
+      );
+
+      scene.add(leg4);
+    }
+
+    function addDesk(length, scene) {
+      const geometry1 = new THREE.BoxGeometry(length * 3, 2, length);
+      const material1 = new THREE.MeshStandardMaterial({ color: 0xd2cdc2 });
+      const desk = new THREE.Mesh(geometry1, material1);
+      desk.position.set(0, -length, 0);
+
+      scene.add(desk);
+
+      const geometry2 = new THREE.CylinderGeometry(1, 1, 60 - length);
+      const material2 = new THREE.MeshStandardMaterial({ color: 0xd2cdc2 });
+
+      const leg1 = new THREE.Mesh(geometry2, material2);
+      leg1.position.set(
+        (-length * 4) / 3,
+        -60 + (60 - length) / 2,
+        -length / 2 + 2
+      );
+
+      scene.add(leg1);
+
+      const leg2 = new THREE.Mesh(geometry2, material2);
+      leg2.position.set(
+        (-length * 4) / 3,
+        -60 + (60 - length) / 2,
+        length / 2 - 2
+      );
+
+      scene.add(leg2);
+
+      const leg3 = new THREE.Mesh(geometry2, material2);
+      leg3.position.set(
+        (length * 4) / 3,
+        -60 + (60 - length) / 2,
+        -length / 2 + 2
+      );
+
+      scene.add(leg3);
+
+      const leg4 = new THREE.Mesh(geometry2, material2);
+      leg4.position.set(
+        (length * 4) / 3,
+        -60 + (60 - length) / 2,
+        length / 2 - 2
+      );
+
+      scene.add(leg4);
+    }
+
+    function addCone(length, material, scene) {
+      const geometry = new THREE.ConeGeometry(4, 8, 32);
+      const cone = new THREE.Mesh(geometry, material);
+      cone.position.set(-length + 4, -length + 5, -length / 2 + 6);
+
+      scene.add(cone);
+    }
+
+    function addCylinder(length, material, scene) {
+      const geometry = new THREE.CylinderGeometry(4, 4, 8);
+      const cylinder = new THREE.Mesh(geometry, material);
+      cylinder.position.set(length - 4, -length + 5, -length / 2 + 6);
+
+      scene.add(cylinder);
+    }
+
+    function addSphere(length, material, scene) {
+      const geometry = new THREE.SphereGeometry(6, 32, 32);
+      const sphere = new THREE.Mesh(geometry, material);
+      sphere.position.set(0, -length + 7, length / 2 - 6);
+
+      scene.add(sphere);
+    }
+
+    function main() {
+      const canvas = document.querySelector('#c');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+
+      const loader = new THREE.TextureLoader();
+      const texture = loader.load('chair.png');
+
+      const fov = 40;
+      const aspect = 2;
+      const near = 0.1;
+      const far = 1000;
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+      camera.position.z = 240;
+
+      const params = new URL(document.location).searchParams;
+      const allowvr = params.get('allowvr') === 'true';
+      if (allowvr) {
+        renderer.xr.enabled = true;
+        document.body.appendChild(VRButton.createButton(renderer));
+        document.querySelector('#vr').style.display = 'none';
+
+        renderer.xr.addEventListener('sessionstart', () => {
+          const refSpace = renderer.xr.getReferenceSpace();
+          renderer.xr.setReferenceSpace(
+            refSpace.getOffsetReferenceSpace(
+              new XRRigidTransform({ x: 0, y: 0, z: -160 })
+            )
+          );
+        });
+      } else {
+        // no VR, add some controls
+        const controls = new OrbitControls(camera, canvas);
+        controls.target.set(0, 1.6, -2);
+        controls.update();
+        document.querySelector('#nonvr').style.display = 'none';
+      }
+
+      var controls = new OrbitControls(camera, renderer.domElement);
+      controls.listenToKeyEvents(window); // optional
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x333333);
+
+      const color = 0xffffff;
+      const intensity = 0.1;
+      const light = new THREE.AmbientLight(color, intensity);
+      light.position.set(0, 60, 0);
+      scene.add(light);
+
+      const lambertMaterial = new THREE.MeshLambertMaterial({ color: 'blue' });
+
+      const phongMaterial = new THREE.MeshPhongMaterial({ color: 'yellow' });
+
+      const physicalMaterial = new THREE.MeshPhysicalMaterial({
+        color: 'orange',
+      });
+
+      const gui = new GUI();
+
+      class ColorGUIHelper {
+        constructor(objects, prop) {
+          this.objects = objects;
+          this.prop = prop;
+        }
+        get value() {
+          return `#${this.objects[0][this.prop].getHexString()}`;
+        }
+        set value(hexString) {
+          this.objects.forEach((obj) => obj[this.prop].set(hexString));
+        }
+      }
+
+      class GeometryGUIHelper {
+        constructor(objects, propPath) {
+          this.objects = objects;
+          this.propPath = propPath.split('.');
+        }
+
+        get value() {
+          return this.objects[0][this.propPath[0]][this.propPath[1]];
+        }
+
+        set value(val) {
+          this.objects.forEach((obj) => {
+            obj[this.propPath[0]][this.propPath[1]] = val;
+          });
+        }
+      }
+
+      const myObject = {
+        color: 1,
+        directionalLight: false,
+        pointLight: false,
+        spotLight: false,
+        hemisphereLight: false,
+        xAxis: 0,
+      };
+
+      const directionalLight = new THREE.DirectionalLight(color, 4);
+      directionalLight.position.set(0, 60, 0);
+      gui
+        .add(myObject, 'directionalLight')
+        .name('directionalLight')
+        .onChange((value) => {
+          directionalLight.visible = value;
+
+          if (value) {
+            scene.add(directionalLight);
+          }
+        });
+
+      const pointLight = new THREE.PointLight(color, 4000);
+      pointLight.position.set(0, 60, 0);
+      gui
+        .add(myObject, 'pointLight')
+        .name('pointLight')
+        .onChange((value) => {
+          pointLight.visible = value;
+
+          if (value) {
+            scene.add(pointLight);
+          }
+        });
+
+      const spotLight = new THREE.SpotLight(color, 4000);
+      spotLight.position.set(0, 60, 0);
+      gui
+        .add(myObject, 'spotLight')
+        .name('spotLight')
+        .onChange((value) => {
+          spotLight.visible = value;
+
+          if (value) {
+            scene.add(spotLight);
+          }
+        });
+
+      const hemisphereLight = new THREE.HemisphereLight(color, color, 1);
+      hemisphereLight.position.set(0, 60, 0);
+      gui
+        .add(myObject, 'hemisphereLight')
+        .name('hemisphereLight')
+        .onChange((value) => {
+          hemisphereLight.visible = value;
+
+          if (value) {
+            scene.add(hemisphereLight);
+          }
+        });
+
+      gui
+        .addColor(
+          new ColorGUIHelper(
+            [directionalLight, pointLight, spotLight, hemisphereLight],
+            'color'
+          ),
+          'value'
+        )
+        .name('color');
+      gui
+        .add(
+          new GeometryGUIHelper(
+            [directionalLight, pointLight, spotLight, hemisphereLight],
+            'position.x'
+          ),
+          'value',
+          -60,
+          60,
+          1
+        )
+        .name('xAxis');
+
+      addWalls(120, scene);
+      addCone(32, lambertMaterial, scene);
+      addCylinder(32, phongMaterial, scene);
+      addSphere(32, physicalMaterial, scene);
+      addDesk(32, scene);
+      addChair(24, texture, scene);
+
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+          renderer.setSize(width, height, false);
+        }
+        return needResize;
+      }
+
+      function render() {
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement;
+          camera.aspect = canvas.clientWidth / canvas.clientHeight;
+          camera.updateProjectionMatrix();
+        }
+
+        controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+        renderer.render(scene, camera);
+        requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    main();
+  </script>
+</html>
