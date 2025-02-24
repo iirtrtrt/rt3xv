@@ -299,34 +299,12 @@
       light.position.set(0, 60, 0);
       scene.add(light);
 
-      const lambertMaterial = new THREE.MeshLambertMaterial({
-        color: 'blue',
-        opacity: 0.6,
-        transparent: false,
-        map: texture,
-        envMap: null,
-        fog: true,
-      });
+      const lambertMaterial = new THREE.MeshLambertMaterial({ color: 'blue' });
 
-      const phongMaterial = new THREE.MeshPhongMaterial({
-        color: 'yellow',
-        opacity: 0.6,
-        shininess: 30,
-        transparent: false,
-        map: texture,
-        envMap: null,
-        specular: 'green',
-        fog: true,
-      });
+      const phongMaterial = new THREE.MeshPhongMaterial({ color: 'yellow' });
 
       const physicalMaterial = new THREE.MeshPhysicalMaterial({
         color: 'orange',
-        opacity: 0.6,
-        transparent: false,
-        map: texture,
-        envMap: null,
-        specular: 'green',
-        fog: true,
       });
 
       const gui = new GUI();

@@ -308,15 +308,15 @@
       light.position.set(0, 60, 0);
       scene.add(light);
 
-      const directionalLight = new THREE.DirectionalLight(color, 8);
-      directionalLight.position.set(0, 60, 0);
-      scene.add(directionalLight);
+      const pointLight = new THREE.PointLight(color, 16000);
+      pointLight.position.set(0, 60, 0);
+      scene.add(pointLight);
 
       const lambertMaterial = new THREE.MeshLambertMaterial({
         color: 'blue',
         opacity: 0.6,
         transparent: false,
-        map: texture,
+        map: null,
         envMap: null,
         fog: true,
       });
@@ -326,7 +326,7 @@
         opacity: 0.6,
         shininess: 30,
         transparent: false,
-        map: texture,
+        map: null,
         envMap: null,
         specular: 'green',
         fog: true,
@@ -336,10 +336,10 @@
         color: 'orange',
         opacity: 0.6,
         transparent: false,
-        map: texture,
+        map: null,
         envMap: null,
-        specular: 'green',
         fog: true,
+        clearcoat: 0.0,
       });
 
       const gui = new GUI();
@@ -406,13 +406,7 @@
         });
 
       gui
-        .add(
-          {
-            map: 'texture',
-          },
-          'map',
-          ['none', 'texture']
-        )
+        .add({ map: 'none' }, 'map', ['none', 'texture'])
         .name('map')
         .onChange((value) => {
           myObject.forEach((material) => {
@@ -421,21 +415,11 @@
           });
         });
       gui
-        .add({ envMaps: 'none' }, 'envMap', [
-          'none',
-          'reflection',
-          'refraction',
-        ])
+        .add({ envMap: 'none' }, 'envMap', ['none', 'reflection'])
         .name('envMaps')
         .onChange((value) => {
           myObject.forEach((material) => {
             material.envMap = value === 'none' ? null : envMaps;
-
-            if (material instanceof THREE.MeshPhysicalMaterial) {
-              material.transmission = value === 'refraction' ? 0.8 : 0;
-              material.ior = value === 'refraction' ? 1.6 : 0.8;
-            }
-
             material.reflectivity = value === 'reflection' ? 1 : 0.1;
             material.needsUpdate = true;
           });
@@ -456,11 +440,23 @@
           });
         });
       gui
-        .addColor(
-          new ColorGUIHelper([phongMaterial, physicalMaterial], 'specular'),
-          'value'
-        )
+        .addColor(new ColorGUIHelper([phongMaterial], 'specular'), 'value')
         .name('specular')
+        .onChange(() => {
+          myObject.forEach((material) => {
+            material.needsUpdate = true;
+          });
+        });
+
+      gui
+        .add(
+          new PropertyGUIHelper([physicalMaterial], 'clearcoat'),
+          'value',
+          0,
+          1,
+          0.01
+        )
+        .name('clearcoat')
         .onChange(() => {
           myObject.forEach((material) => {
             material.needsUpdate = true;
