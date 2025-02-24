@@ -226,27 +226,24 @@
       scene.add(leg4);
     }
 
-    function addCone(length, scene) {
+    function addCone(length, material, scene) {
       const geometry = new THREE.ConeGeometry(4, 8, 32);
-      const material = new THREE.MeshLambertMaterial({ color: 'blue' });
       const cone = new THREE.Mesh(geometry, material);
       cone.position.set(-length + 4, -length + 5, -length / 2 + 6);
 
       scene.add(cone);
     }
 
-    function addCylinder(length, scene) {
+    function addCylinder(length, material, scene) {
       const geometry = new THREE.CylinderGeometry(4, 4, 8);
-      const material = new THREE.MeshPhongMaterial({ color: 'yellow' });
       const cylinder = new THREE.Mesh(geometry, material);
       cylinder.position.set(length - 4, -length + 5, -length / 2 + 6);
 
       scene.add(cylinder);
     }
 
-    function addSphere(length, scene) {
+    function addSphere(length, material, scene) {
       const geometry = new THREE.SphereGeometry(6, 32, 32);
-      const material = new THREE.MeshPhysicalMaterial({ color: 'orange' });
       const sphere = new THREE.Mesh(geometry, material);
       sphere.position.set(0, -length + 7, length / 2 - 6);
 
@@ -259,6 +256,15 @@
 
       const loader = new THREE.TextureLoader();
       const texture = loader.load('chair.png');
+      const cubeTextureLoader = new THREE.CubeTextureLoader();
+      const envMaps = cubeTextureLoader.load([
+        'px.png',
+        'nx.png',
+        'py.png',
+        'ny.png',
+        'pz.png',
+        'nz.png',
+      ]);
 
       const fov = 40;
       const aspect = 2;
@@ -297,14 +303,44 @@
       scene.background = new THREE.Color(0x333333);
 
       const color = 0xffffff;
-      const intensity = 0.1;
+      const intensity = 0.2;
       const light = new THREE.AmbientLight(color, intensity);
-      light.position.set(0, 61, 0);
+      light.position.set(0, 60, 0);
       scene.add(light);
 
-      const pointLight = new THREE.PointLight(color, 4000);
-      pointLight.position.set(0, 60, 0);
-      scene.add(pointLight);
+      const directionalLight = new THREE.DirectionalLight(color, 8);
+      directionalLight.position.set(0, 60, 0);
+      scene.add(directionalLight);
+
+      const lambertMaterial = new THREE.MeshLambertMaterial({
+        color: 'blue',
+        opacity: 0.6,
+        transparent: false,
+        map: texture,
+        envMap: null,
+        fog: true,
+      });
+
+      const phongMaterial = new THREE.MeshPhongMaterial({
+        color: 'yellow',
+        opacity: 0.6,
+        shininess: 30,
+        transparent: false,
+        map: texture,
+        envMap: null,
+        specular: 'green',
+        fog: true,
+      });
+
+      const physicalMaterial = new THREE.MeshPhysicalMaterial({
+        color: 'orange',
+        opacity: 0.6,
+        transparent: false,
+        map: texture,
+        envMap: null,
+        specular: 'green',
+        fog: true,
+      });
 
       const gui = new GUI();
 
@@ -321,45 +357,120 @@
         }
       }
 
-      class GeometryGUIHelper {
-        constructor(objects, propPath) {
+      class PropertyGUIHelper {
+        constructor(objects, prop) {
           this.objects = objects;
-          this.propPath = propPath.split('.');
+          this.prop = prop;
         }
-
         get value() {
-          return this.objects[0][this.propPath[0]][this.propPath[1]];
+          return this.objects[0][this.prop];
         }
-
         set value(val) {
-          this.objects.forEach((obj) => {
-            obj[this.propPath[0]][this.propPath[1]] = val;
-          });
+          this.objects.forEach((obj) => (obj[this.prop] = val));
         }
       }
 
-      const myObject = {
-        color: 1,
-        xAxis: 0,
-      };
+      const myObject = [lambertMaterial, phongMaterial, physicalMaterial];
 
       gui
-        .addColor(new ColorGUIHelper([light, pointLight], 'color'), 'value')
-        .name('color');
+        .addColor(new ColorGUIHelper(myObject, 'color'), 'value')
+        .name('color')
+        .onChange(() => {
+          myObject.forEach((material) => {
+            material.needsUpdate = true;
+          });
+        });
+      gui
+        .add(new PropertyGUIHelper(myObject, 'opacity'), 'value', 0, 1, 0.01)
+        .name('opacity')
+        .onChange(() => {
+          myObject.forEach((material) => {
+            material.needsUpdate = true;
+          });
+        });
+      gui
+        .add(new PropertyGUIHelper(myObject, 'transparent'), 'value')
+        .name('transparent')
+        .onChange(() => {
+          myObject.forEach((material) => {
+            material.needsUpdate = true;
+          });
+        });
+      gui
+        .add(new PropertyGUIHelper(myObject, 'fog'), 'value')
+        .name('fog')
+        .onChange(() => {
+          myObject.forEach((material) => {
+            material.needsUpdate = true;
+          });
+        });
+
       gui
         .add(
-          new GeometryGUIHelper([light, pointLight], 'position.x'),
+          {
+            map: 'texture',
+          },
+          'map',
+          ['none', 'texture']
+        )
+        .name('map')
+        .onChange((value) => {
+          myObject.forEach((material) => {
+            material.map = value === 'none' ? null : texture;
+            material.needsUpdate = true;
+          });
+        });
+      gui
+        .add({ envMaps: 'none' }, 'envMap', [
+          'none',
+          'reflection',
+          'refraction',
+        ])
+        .name('envMaps')
+        .onChange((value) => {
+          myObject.forEach((material) => {
+            material.envMap = value === 'none' ? null : envMaps;
+
+            if (material instanceof THREE.MeshPhysicalMaterial) {
+              material.transmission = value === 'refraction' ? 0.8 : 0;
+              material.ior = value === 'refraction' ? 1.6 : 0.8;
+            }
+
+            material.reflectivity = value === 'reflection' ? 1 : 0.1;
+            material.needsUpdate = true;
+          });
+        });
+
+      gui
+        .add(
+          new PropertyGUIHelper([phongMaterial], 'shininess'),
           'value',
-          -60,
-          60,
+          0,
+          100,
           1
         )
-        .name('xAxis');
+        .name('shininess')
+        .onChange(() => {
+          myObject.forEach((material) => {
+            material.needsUpdate = true;
+          });
+        });
+      gui
+        .addColor(
+          new ColorGUIHelper([phongMaterial, physicalMaterial], 'specular'),
+          'value'
+        )
+        .name('specular')
+        .onChange(() => {
+          myObject.forEach((material) => {
+            material.needsUpdate = true;
+          });
+        });
 
       addWalls(120, scene);
-      addCone(32, scene);
-      addCylinder(32, scene);
-      addSphere(32, scene);
+      addCone(32, lambertMaterial, scene);
+      addCylinder(32, phongMaterial, scene);
+      addSphere(32, physicalMaterial, scene);
       addDesk(32, scene);
       addChair(24, texture, scene);
 
