@@ -43,6 +43,7 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
 
+    // the function that the box surfaces receives shadows is added for each surface
     function addWalls(length, scene) {
       const geometry1 = new THREE.PlaneGeometry(length, length);
       const material1 = new THREE.MeshLambertMaterial({
@@ -111,6 +112,7 @@
       return { backWall, leftWall, rightWall, ceiling, floor };
     }
 
+    // all objects in the box can receive and cast shadows
     function addChair(length, texture1, scene) {
       const geometry1 = new THREE.BoxGeometry(length, 2, length);
       const material1 = new THREE.MeshStandardMaterial({ map: texture1 });
@@ -274,6 +276,7 @@
     function main() {
       const canvas = document.querySelector('#c');
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      // to have the shadow effect, renderer enables it (very important)
       renderer.shadowMap.enabled = true;
 
       const loader = new THREE.TextureLoader();
@@ -338,6 +341,41 @@
         }
       }
 
+      // create a helper that can access camera properties of the directional and spot light
+      class ShadowMapGUIHelper {
+        constructor(objects, propPath) {
+          this.objects = objects;
+          this.propPath = propPath.split('.');
+        }
+
+        get value() {
+          return this.getNestedProperty(this.objects[0], this.propPath);
+        }
+
+        set value(val) {
+          this.objects.forEach((obj) => {
+            this.setNestedProperty(obj, this.propPath, val);
+            obj.shadow.camera.updateProjectionMatrix();
+          });
+        }
+
+        getNestedProperty(obj, path) {
+          return path.reduce(
+            (acc, key) =>
+              acc && acc[key] !== undefined ? acc[key] : undefined,
+            obj
+          );
+        }
+
+        setNestedProperty(obj, path, val) {
+          path
+            .slice(0, -1)
+            .reduce((acc, key) => (acc[key] = acc[key] || {}), obj)[
+            path[path.length - 1]
+          ] = val;
+        }
+      }
+
       const myObject = {
         color: 1,
         directionalLight: false,
@@ -345,8 +383,17 @@
         spotLight: false,
         hemisphereLight: false,
         xAxis: 0,
+        directionalCameraLeft: -60,
+        directionalCameraRight: 60,
+        directionalCameraTop: 60,
+        directionalCameraBottom: -60,
+        near: 0.1,
+        far: 240,
       };
 
+      // enable lights can cast shadows except the hemisphere light
+      // especially this directional light has more setting to make the shadow camera area wider
+      // when the light geometry is moving, the shadow also moves! (I like it :D)
       const directionalLight = new THREE.DirectionalLight(color, 4);
       directionalLight.castShadow = true;
       directionalLight.position.set(0, 60, 0);
@@ -396,7 +443,6 @@
         });
 
       const hemisphereLight = new THREE.HemisphereLight(color, color, 1);
-      hemisphereLight.castShadow = true;
       hemisphereLight.position.set(0, 60, 0);
       gui
         .add(myObject, 'hemisphereLight')
@@ -430,6 +476,69 @@
           1
         )
         .name('xAxis');
+
+      //add controls for shadow maps of directional and spot lights
+      gui
+        .add(
+          new ShadowMapGUIHelper([directionalLight], 'shadow.camera.left'),
+          'value',
+          -120,
+          0,
+          -1
+        )
+        .name('directionalCameraLeft');
+      gui
+        .add(
+          new ShadowMapGUIHelper([directionalLight], 'shadow.camera.right'),
+          'value',
+          0,
+          120,
+          1
+        )
+        .name('directionalCameraRight');
+      gui
+        .add(
+          new ShadowMapGUIHelper([directionalLight], 'shadow.camera.top'),
+          'value',
+          0,
+          120,
+          1
+        )
+        .name('directionalCameraTop');
+      gui
+        .add(
+          new ShadowMapGUIHelper([directionalLight], 'shadow.camera.bottom'),
+          'value',
+          -120,
+          0,
+          -1
+        )
+        .name('directionalCameraBottom');
+
+      gui
+        .add(
+          new ShadowMapGUIHelper(
+            [directionalLight, spotLight],
+            'shadow.camera.near'
+          ),
+          'value',
+          0.1,
+          240,
+          0.1
+        )
+        .name('lightNear');
+      gui
+        .add(
+          new ShadowMapGUIHelper(
+            [directionalLight, spotLight],
+            'shadow.camera.far'
+          ),
+          'value',
+          60,
+          400,
+          1
+        )
+        .name('lightFar');
 
       addWalls(120, scene);
       addCone(32, lambertMaterial, scene);

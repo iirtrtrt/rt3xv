@@ -287,6 +287,7 @@
         }
       }
 
+      // create a geometry helper to control the x axis
       class GeometryGUIHelper {
         constructor(objects, propPath) {
           this.objects = objects;
@@ -304,6 +305,9 @@
         }
       }
 
+      // to allow to change the available properties for each of these lighting technics (geometric properties, color, etc.), the list of GUI sections are declared
+      // for the geometric properties, I added xAxis
+      // lights are able to add and remove via checkboxes
       const myObject = {
         color: 1,
         directionalLight: false,
@@ -313,6 +317,7 @@
         xAxis: 0,
       };
 
+      // declare four different lights with fixed intensity values of lights to see light changes clearly
       const directionalLight = new THREE.DirectionalLight(color, 4);
       directionalLight.position.set(0, 60, 0);
       gui

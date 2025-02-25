@@ -370,6 +370,7 @@
         .addColor(new ColorGUIHelper(floor.material, 'color'), 'value')
         .name('floor');
 
+      // most of VR and GUI in a VR mode codes are from the example link on the instruction
       const geometry = new THREE.BufferGeometry();
 
       const controller1 = renderer.xr.getController(0);
@@ -386,6 +387,7 @@
       group.listenToXRControllerEvents(controller2);
       scene.add(group);
 
+      // it is important to initialise the GUI in the right position
       const mesh = new HTMLMesh(gui.domElement);
       mesh.position.x = -20;
       mesh.position.y = -20;

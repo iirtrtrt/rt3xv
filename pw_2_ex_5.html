@@ -43,7 +43,9 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
 
+    // to improve  the  realism, the lights on the walls are added
     function addWalls(length, scene) {
+      // I set the intensity  and emissive intensity as 2
       const intensity = 2;
       const emissiveIntensity = 2;
 
@@ -58,6 +60,9 @@
       const backWall = new THREE.Mesh(geometry1, material1);
       backWall.position.set(0, 0, -(length / 2));
 
+      // declare the light with the same colour as the wall, inherit its position, and target to the centre coordinate (0, 0, 0)
+      // this method is adopted for each wall, ceiling or floor
+      // when the sphere has a bright colour, the light reflection from the wall is more visible
       const backWallLight = new THREE.RectAreaLight(
         'white',
         intensity,
