@@ -21,8 +21,8 @@
       }
       .mode {
         position: absolute;
-        left: 1em;
-        top: 1em;
+        left: 0px;
+        top: 56px;
         background-color: aliceblue;
         padding: 4px;
       }
@@ -30,6 +30,10 @@
   </head>
   <body>
     <canvas id="c"></canvas>
+    <div class="mode">
+      <a href="?allowvr=true" id="vr">Allow VR</a>
+      <a href="?" id="nonvr">Use Non-VR Mode</a>
+    </div>
   </body>
 
   <script
@@ -48,7 +52,12 @@
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    // import GUI related libraries
     import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm';
+    import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
+    import Stats from 'three/addons/libs/stats.module.js';
+    import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
+    import { VRButton } from 'three/addons/webxr/VRButton.js';
 
     function addWalls(length, scene) {
       const geometry1 = new THREE.PlaneGeometry(length, length);
@@ -279,8 +288,49 @@
         color: 'orange',
       });
 
+      addWalls(120, scene);
+      addCone(32, lambertMaterial, scene);
+      addCylinder(32, phongMaterial, scene);
+      addSphere(32, physicalMaterial, scene);
+      addDesk(32, scene);
+      addChair(24, texture, scene);
+
+      const { backWall, leftWall, rightWall, ceiling, floor } = addWalls(
+        120,
+        scene
+      );
+
+      // declare GUI and
       const gui = new GUI();
 
+      const params = new URL(document.location).searchParams;
+      const allowvr = params.get('allowvr') === 'true';
+      if (allowvr) {
+        renderer.xr.enabled = true;
+        document.body.appendChild(VRButton.createButton(renderer));
+        document.querySelector('#vr').style.display = 'none';
+
+        renderer.xr.addEventListener('sessionstart', () => {
+          const refSpace = renderer.xr.getReferenceSpace();
+          renderer.xr.setReferenceSpace(
+            refSpace.getOffsetReferenceSpace(
+              new XRRigidTransform({ x: 0, y: 0, z: -160 })
+            )
+          );
+        });
+
+        gui.domElement.style.visibility = 'hidden';
+      } else {
+        // no VR, add some controls
+        const controls = new OrbitControls(camera, canvas);
+        controls.target.set(0, 1.6, -2);
+        controls.update();
+        document.querySelector('#nonvr').style.display = 'none';
+
+        gui.domElement.style.visibility = 'display';
+      }
+
+      // a basic GUI colour panel
       class ColorGUIHelper {
         constructor(object, prop) {
           this.object = object;
@@ -294,18 +344,7 @@
         }
       }
 
-      addWalls(120, scene);
-      addCone(32, lambertMaterial, scene);
-      addCylinder(32, phongMaterial, scene);
-      addSphere(32, physicalMaterial, scene);
-      addDesk(32, scene);
-      addChair(24, texture, scene);
-
-      const { backWall, leftWall, rightWall, ceiling, floor } = addWalls(
-        120,
-        scene
-      );
-
+      // the list of sections on the GUI panel
       const myObject = {
         backWall: 1,
         leftWall: 1,
@@ -314,25 +353,51 @@
         floor: 1,
       };
 
+      // these allows to control the colour dynamically of the wall by updating the wall's material
       gui
         .addColor(new ColorGUIHelper(backWall.material, 'color'), 'value')
         .name('backWall');
-
       gui
         .addColor(new ColorGUIHelper(leftWall.material, 'color'), 'value')
         .name('leftWall');
-
       gui
         .addColor(new ColorGUIHelper(rightWall.material, 'color'), 'value')
         .name('rightWall');
-
       gui
         .addColor(new ColorGUIHelper(ceiling.material, 'color'), 'value')
         .name('ceiling');
-
       gui
         .addColor(new ColorGUIHelper(floor.material, 'color'), 'value')
         .name('floor');
+
+      const geometry = new THREE.BufferGeometry();
+
+      const controller1 = renderer.xr.getController(0);
+      controller1.add(new THREE.Line(geometry));
+      scene.add(controller1);
+
+      const controller2 = renderer.xr.getController(1);
+      controller2.add(new THREE.Line(geometry));
+      scene.add(controller2);
+
+      const group = new InteractiveGroup();
+      group.listenToPointerEvents(renderer, camera);
+      group.listenToXRControllerEvents(controller1);
+      group.listenToXRControllerEvents(controller2);
+      scene.add(group);
+
+      const mesh = new HTMLMesh(gui.domElement);
+      mesh.position.x = -20;
+      mesh.position.y = -20;
+      mesh.position.z = 80;
+      mesh.rotation.y = Math.PI / 4;
+      mesh.scale.setScalar(200);
+      group.add(mesh);
+
+      let stats = new Stats();
+      stats.dom.style.width = '80px';
+      stats.dom.style.height = '48px';
+      document.body.appendChild(stats.dom);
 
       function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
@@ -354,10 +419,15 @@
 
         controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
         renderer.render(scene, camera);
-        requestAnimationFrame(render);
+        // requestAnimationFrame(render);
+        stats.update();
+
+        // Canvas elements doesn't trigger DOM updates, so we have to update the texture
+        mesh.material.map.update();
       }
 
-      requestAnimationFrame(render);
+      // requestAnimationFrame(render);
+      renderer.setAnimationLoop(render);
     }
 
     main();

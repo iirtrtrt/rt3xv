@@ -42,6 +42,7 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+    // the walls are created with designated colours using the lambert material by the instruction
     function addWalls(length, scene) {
       const geometry1 = new THREE.PlaneGeometry(length, length);
       const material1 = new THREE.MeshLambertMaterial({
@@ -105,6 +106,7 @@
       return { backWall, leftWall, rightWall, ceiling, floor };
     }
 
+    // add a chair with its texture, by changing the length parameter, it keeps the shape but requires adjusting the position
     function addChair(length, texture1, scene) {
       const geometry1 = new THREE.BoxGeometry(length, 2, length);
       const material1 = new THREE.MeshStandardMaterial({ map: texture1 });
@@ -165,6 +167,7 @@
       scene.add(leg4);
     }
 
+    // add a desk, by changing the length parameter, it still keeps the shape of desks but requires more care of position and scaling
     function addDesk(length, scene) {
       const geometry1 = new THREE.BoxGeometry(length * 3, 2, length);
       const material1 = new THREE.MeshStandardMaterial({ color: 0xd2cdc2 });
@@ -213,6 +216,8 @@
       scene.add(leg4);
     }
 
+    // add cone, cylinder and sphere, the length parameter is important for the position
+    // later, their materials are updated via a GUI panel, so they are on the parameters
     function addCone(length, material, scene) {
       const geometry = new THREE.ConeGeometry(4, 8, 32);
       const cone = new THREE.Mesh(geometry, material);
@@ -241,6 +246,7 @@
       const canvas = document.querySelector('#c');
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 
+      // brought my own chair texture
       const loader = new THREE.TextureLoader();
       const texture = loader.load('chair.png');
 
@@ -265,6 +271,7 @@
         scene.add(light);
       }
 
+      // by given the instruction, lambert, phong and phyiscal materials are used
       const lambertMaterial = new THREE.MeshLambertMaterial({ color: 'blue' });
 
       const phongMaterial = new THREE.MeshPhongMaterial({ color: 'yellow' });

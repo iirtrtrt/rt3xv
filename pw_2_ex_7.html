@@ -301,29 +301,6 @@
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
       camera.position.z = 240;
 
-      const params = new URL(document.location).searchParams;
-      const allowvr = params.get('allowvr') === 'true';
-      if (allowvr) {
-        renderer.xr.enabled = true;
-        document.body.appendChild(VRButton.createButton(renderer));
-        document.querySelector('#vr').style.display = 'none';
-
-        renderer.xr.addEventListener('sessionstart', () => {
-          const refSpace = renderer.xr.getReferenceSpace();
-          renderer.xr.setReferenceSpace(
-            refSpace.getOffsetReferenceSpace(
-              new XRRigidTransform({ x: 0, y: 0, z: -160 })
-            )
-          );
-        });
-      } else {
-        // no VR, add some controls
-        const controls = new OrbitControls(camera, canvas);
-        controls.target.set(0, 1.6, -2);
-        controls.update();
-        document.querySelector('#nonvr').style.display = 'none';
-      }
-
       var controls = new OrbitControls(camera, renderer.domElement);
       controls.listenToKeyEvents(window); // optional
 
@@ -335,8 +312,6 @@
       const light = new THREE.AmbientLight(color, intensity);
       light.position.set(0, 60, 0);
       scene.add(light);
-
-      let stats, statsMesh;
 
       const lambertMaterial = new THREE.MeshLambertMaterial({ color: 'blue' });
 
@@ -407,7 +382,34 @@
       hemisphereLight.castShadow = true;
       hemisphereLight.position.set(0, 60, 0);
 
-      const gui = new GUI({ width: 300 });
+      const gui = new GUI();
+
+      const params = new URL(document.location).searchParams;
+      const allowvr = params.get('allowvr') === 'true';
+      if (allowvr) {
+        renderer.xr.enabled = true;
+        document.body.appendChild(VRButton.createButton(renderer));
+        document.querySelector('#vr').style.display = 'none';
+
+        renderer.xr.addEventListener('sessionstart', () => {
+          const refSpace = renderer.xr.getReferenceSpace();
+          renderer.xr.setReferenceSpace(
+            refSpace.getOffsetReferenceSpace(
+              new XRRigidTransform({ x: 0, y: 0, z: -160 })
+            )
+          );
+        });
+
+        gui.domElement.style.visibility = 'hidden';
+      } else {
+        // no VR, add some controls
+        const controls = new OrbitControls(camera, canvas);
+        controls.target.set(0, 1.6, -2);
+        controls.update();
+        document.querySelector('#nonvr').style.display = 'none';
+
+        gui.domElement.style.visibility = 'display';
+      }
       gui
         .add(myObject, 'directionalLight')
         .name('directionalLight')
@@ -469,7 +471,6 @@
           1
         )
         .name('xAxis');
-      gui.domElement.style.visibility = 'hidden';
 
       const geometry = new THREE.BufferGeometry();
 
@@ -495,7 +496,7 @@
       mesh.scale.setScalar(200);
       group.add(mesh);
 
-      stats = new Stats();
+      let stats = new Stats();
       stats.dom.style.width = '80px';
       stats.dom.style.height = '48px';
       document.body.appendChild(stats.dom);
@@ -537,6 +538,7 @@
       // requestAnimationFrame(render);
       renderer.setAnimationLoop(render);
     }
+
     main();
   </script>
 </html>
