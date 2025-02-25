@@ -226,6 +226,7 @@
 
       // the movements of the rest of cylinders, hand and fingers are similar
       const arm2Position = new THREE.Vector3(0, 28, 0);
+      // update position of arms based on the previous arm
       arm1.localToWorld(arm2Position);
       arm2.position.copy(arm2Position);
 
