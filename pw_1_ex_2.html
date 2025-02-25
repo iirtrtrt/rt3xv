@@ -20,7 +20,7 @@
         height: 100%;
         display: block;
       }
-      #orthgraphic {
+      #orthographic {
         width: 50%;
         height: 100%;
         display: block;
@@ -46,7 +46,11 @@
       import { FontLoader } from 'three/addons/loaders/FontLoader.js';
       import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
       import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+      import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
+      import { FlyControls } from 'three/addons/controls/FlyControls.js';
+      import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
 
       function addGrid(x, y, length, scene) {
         const baseMaterial = new THREE.LineBasicMaterial({
@@ -666,6 +670,7 @@
         );
       }
 
+      // based on the first exercise, I had rendered one scene using a perspective camera, two scenes are created for each camera, perspective for main1 and orthographic for main2
       function main1() {
         const canvas = document.querySelector('#perspective');
         const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
@@ -699,7 +704,7 @@
       }
 
       function main2() {
-        const canvas = document.querySelector('#orthgraphic');
+        const canvas = document.querySelector('#orthographic');
         const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
 
         const near = 4;
@@ -744,7 +749,8 @@
       main2();
     </script>
 
+    <!-- canvases for each camera -->
     <canvas id="perspective"></canvas>
-    <canvas id="orthgraphic"></canvas>
+    <canvas id="orthographic"></canvas>
   </body>
 </html>

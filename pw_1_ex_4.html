@@ -42,6 +42,10 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+    // standard materials have been adopted than basic materials to give this more realistic, there would be more choices like Phong BRDF, but I think the standard materials are enough to perform in my opinion
+    // it is fun to have shadows (I understood how it works, so I added it personally :D)
+
+    // a function to add background surface
     function addBackground(length, scene) {
       const geometry = new THREE.PlaneGeometry(length, length);
 
@@ -52,19 +56,21 @@
         opacity: 0.8,
       });
       const plane = new THREE.Mesh(geometry, material);
-
+      plane.receiveShadow = true;
       plane.position.set(0, 0, -32);
 
       scene.add(plane);
     }
 
+    // body is constructed by two objects, box and cone, and have their own textures
     function addBody(scene, texture1, texture2, x, y, z) {
       const geometry1 = new THREE.BoxGeometry(8, 120, 12);
 
       const material1 = new THREE.MeshStandardMaterial({ map: texture1 });
 
       const bodyFrame = new THREE.Mesh(geometry1, material1);
-
+      bodyFrame.receiveShadow = true;
+      bodyFrame.castShadow = true;
       bodyFrame.position.set(x, y, z + 8);
 
       scene.add(bodyFrame);
@@ -74,7 +80,8 @@
       const material2 = new THREE.MeshStandardMaterial({ map: texture2 });
 
       const body = new THREE.Mesh(geometry2, material2);
-
+      body.receiveShadow = true;
+      body.castShadow = true;
       body.rotation.z = Math.PI;
       body.rotation.y = Math.PI / 2;
 
@@ -87,7 +94,8 @@
       const material = new THREE.MeshStandardMaterial({ color: 'white' });
 
       const desk = new THREE.Mesh(geometry, material);
-
+      desk.receiveShadow = true;
+      desk.castShadow = true;
       desk.position.set(x, y - 52, z + 32);
 
       scene.add(desk);
@@ -97,12 +105,15 @@
       const material2 = new THREE.MeshStandardMaterial({ color: 'red' });
 
       const object = new THREE.Mesh(geometry2, material2);
-
+      object.receiveShadow = true;
+      object.castShadow = true;
       object.position.set(x, y - 48, z + 40);
 
       scene.add(object);
     }
 
+    // the most tricky part making the arm with movements
+    // the left or right are determined by the isLeft parameter
     function addArm(scene, fingerTexture, armTexture, x, y, z, isLeft) {
       let multiply = isLeft ? 1 : -1;
 
@@ -117,6 +128,7 @@
       const geometry6 = new THREE.CylinderGeometry(2, 2, 16, 16);
       const geometry7 = new THREE.CylinderGeometry(2, 2, 16, 16);
 
+      // these translations are crucial to connect each arrangement on the arm including the hand and fingers
       geometry1.translate(x, y + 14, z);
       geometry2.translate(x, y + 14, z);
       geometry3.translate(x, y + 14, z);
@@ -143,8 +155,10 @@
       const finger1 = new THREE.Mesh(geometry6, material6);
       const finger2 = new THREE.Mesh(geometry7, material6);
 
+      // x, y and z, are shoulder coordinate, so it is different by the starting position (left or right shoulder)
       arm1.position.set(isLeft ? x - 14 : x + 14, y + 24, z + 12);
 
+      // setting initial arm rotations
       arm1.rotation.z = (Math.PI / 2.4) * multiply;
       arm1.rotation.x = (Math.PI / 2) * multiply;
 
@@ -155,6 +169,21 @@
       arm3.rotation.x = (Math.PI / 1) * multiply;
 
       hand.rotation.z = (-Math.PI / 2) * multiply;
+
+      arm1.receiveShadow = true;
+      arm1.castShadow = true;
+      arm2.receiveShadow = true;
+      arm2.castShadow = true;
+      arm3.receiveShadow = true;
+      arm3.castShadow = true;
+      wrist.receiveShadow = true;
+      wrist.castShadow = true;
+      hand.receiveShadow = true;
+      hand.castShadow = true;
+      finger1.receiveShadow = true;
+      finger1.castShadow = true;
+      finger2.receiveShadow = true;
+      finger2.castShadow = true;
 
       scene.add(arm1);
       scene.add(arm2);
@@ -167,9 +196,11 @@
       scene.add(finger1);
       scene.add(finger2);
 
+      // I return them to update their position and rotation values
       return { arm1, arm2, arm3, wrist, hand, finger1, finger2 };
     }
 
+    // this function animates the arms by time
     function runAnimation(
       arm1,
       arm2,
@@ -181,8 +212,10 @@
       isLeft,
       time
     ) {
+      // to determine the arm is on the left or right
       let multiply = isLeft ? 1 : -1;
 
+      // this is to give different movements between the first cylinders of the left and right arms
       if (isLeft) {
         arm1.rotation.z -= Math.sin(time) * (Math.PI / 1200) * multiply;
         arm1.rotation.y -= Math.sin(time) * (Math.PI / 1400) * multiply;
@@ -191,6 +224,7 @@
         arm1.rotation.y -= Math.cos(time) * (Math.PI / 1400) * multiply;
       }
 
+      // the movements of the rest of cylinders, hand and fingers are similar
       const arm2Position = new THREE.Vector3(0, 28, 0);
       arm1.localToWorld(arm2Position);
       arm2.position.copy(arm2Position);
@@ -235,7 +269,9 @@
     function main() {
       const canvas = document.querySelector('#c');
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.shadowMap.enabled = true;
 
+      // to have textures, I draw images myself and import here
       const loader = new THREE.TextureLoader();
       const columnTexture = loader.load('column_texture.png');
       const bodyTexture = loader.load('body_texture.png');
@@ -259,6 +295,11 @@
         const color = 0xffffff;
         const intensity = 4;
         const light = new THREE.DirectionalLight(color, intensity);
+        light.castShadow = true;
+        light.shadow.camera.left = -60;
+        light.shadow.camera.right = 60;
+        light.shadow.camera.top = 60;
+        light.shadow.camera.bottom = -60;
         light.position.set(40, 120, 120);
         scene.add(light);
       }
@@ -278,6 +319,7 @@
 
       let time = 0;
 
+      // declare objects of the arms
       const {
         arm1: lArm1,
         arm2: lArm2,
@@ -305,6 +347,7 @@
       function render() {
         time += 0.02;
 
+        // while rendering, the rotation, position, etc are updated by time
         runAnimation(
           lArm1,
           lArm2,

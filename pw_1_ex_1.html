@@ -37,6 +37,7 @@
     </script>
 
     <script type="module">
+      // bring necessary libraries
       import * as THREE from 'three';
       import { FontLoader } from 'three/addons/loaders/FontLoader.js';
       import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
@@ -47,6 +48,7 @@
         const canvas = document.querySelector('#c');
         const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
 
+        // set the camera details: a range of viewing area, position, etc
         const fov = 40;
         const aspect = 2;
         const near = 0.1;
@@ -54,20 +56,25 @@
         const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
         camera.position.z = 360;
 
+        // to make the view convenient, add orbit controls
         const controls = new OrbitControls(camera, canvas);
         controls.enableDamping = true;
         controls.enableZoom = true;
         controls.enablePan = true;
 
         const scene = new THREE.Scene();
+        // to have a black colour background, set the scene background colour as black
         scene.background = new THREE.Color('black');
 
         function addGrid(x, y, length) {
+          // the material of grid's cross symbol is based on the white transparent line
           const baseMaterial = new THREE.LineBasicMaterial({
             color: 'white',
             transparent: true,
           });
 
+          // given parameters, x and y, determine the number of cross symbols and the size of the area, and length makes the margin between them
+          // the x axis has -x to x and y axis has -y to y
           for (let i = -x; i <= x; i++) {
             for (let j = -y; j <= y; j++) {
               const xCoordinate = j * length * 2;
@@ -76,11 +83,14 @@
 
               const margin = length / 1.6;
 
+              // to have a fading effect, the distance from the centroid is computed
               const distance = Math.sqrt(
                 xCoordinate * xCoordinate + yCoordinate * yCoordinate
               );
+              // the opacity is determined by the distance from the centroid
               const opacity = Math.max(0, 1 - distance / 100);
 
+              // to create the cross symbols, horizontal and vertical lines are drown separately using 3D vector
               const horizontal = [];
               horizontal.push(
                 new THREE.Vector3(
@@ -137,6 +147,7 @@
           }
         }
 
+        // call a function to add the grid floor
         addGrid(20, 20, 2.4);
 
         {
@@ -158,6 +169,8 @@
         const objects = [];
         const spread = 24;
 
+        // based on the given code from the document, all objects are added here
+        // to duplicate these objects, more parameters are required, for example, I added the z parameter
         function addObject(x, y, z, obj) {
           obj.position.x = x * spread;
           obj.position.y = y * spread;
@@ -182,7 +195,8 @@
 
         function addSolidGeometry(x, y, z = 0, geometry) {
           const mesh = new THREE.Mesh(geometry, createMaterial());
-          // addObject(x, y, z, mesh);
+
+          // to drow objects three times with the same distance between, the objects are cloned and added
           for (let i = -1; i < 2; i++) {
             addObject(z - i, y, x, mesh.clone());
           }
@@ -191,7 +205,8 @@
         function addLineGeometry(x, y, z = 0, geometry) {
           const material = new THREE.LineBasicMaterial({ color: 'red' });
           const mesh = new THREE.LineSegments(geometry, material);
-          // addObject(x, y, z, mesh);
+
+          // the same as solid geometries
           for (let i = -1; i < 2; i++) {
             addObject(z - i, y, x, mesh.clone());
           }
